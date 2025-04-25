@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: stt-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: stt
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - stt-network
+
+  adminer:
+    image: adminer
+    container_name: adminer_db
+    restart: always
+    ports:
+      - 8080:8080 
+    networks:
+      - stt-network    
+
+  backend:
+    build: .
+    container_name: stt-api
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      FRONT_URL: "http://localhost:8001"
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: 123456
+      DB_NAME: stt
+      DB_PORT: 3306
+      API_PORT: 8001
+    depends_on:
+      - mysql
+    networks:
+      - stt-network
+
+volumes:
+  mysql_data:
+
+networks:
+  stt-network:

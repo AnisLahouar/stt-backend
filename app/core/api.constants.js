@@ -1,0 +1,1 @@
+exports.UPLOAD_IMAGE_API =  process.env.CDN_BASE_URL + "/create-image";
