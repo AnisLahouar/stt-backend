@@ -32,6 +32,23 @@ exports.RES_MESSAGES = {
 
     ERROR: {
       NOT_FOUND: "property_not_found",
+      USER_NOT_FOUND: "property_user_not_found"
+    },
+  },
+
+  PROPERTY_IMAGE: {
+    SUCCESS: {
+      CREATED: "property_image_created",
+      FOUND: "property_image_found",
+      FOUND_ALL_BY_PROPERTY: "property_images_found",
+      FOUND_ALL: "images_found",
+      UPDATED: "property_image_updated",
+      DELETED: "property_image_deleted"
+    },
+
+    ERROR: {
+      NOT_FOUND: "property_image_not_found",
+      PROPERTY_NOT_FOUND: "property_image_property_not_found"
     },
   },
 
@@ -48,6 +65,19 @@ exports.RES_MESSAGES = {
       NOT_FOUND: "reservation_not_found",
       PHONE: "reservations_with_phone_not_found",
       PROPERTY: "reservations_with_property_not_found",
+    },
+  },
+
+  USER: {
+    SUCCESS: {
+      CREATED: "user_created",
+      FOUND: "user_found",
+      FOUND_ALL: "users_found",
+      UPDATED: "user_updated",
+      DELETED: "user_deleted"
+    },
+    ERROR: {
+      NOT_FOUND: "user_not_found",
     },
   }
 };

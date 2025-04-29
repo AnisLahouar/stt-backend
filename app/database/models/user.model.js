@@ -27,6 +27,12 @@ exports.User = sequelize.define(
     },
     role: {
       type: DataTypes.ENUM("admin", "owner", "client")
+    },
+    propertyCount: {
+      type: DataTypes.INTEGER,
+    },
+    staus: {
+      type: DataTypes.ENUM("active", "inactive")
     }
   },
   {

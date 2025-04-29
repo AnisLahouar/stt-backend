@@ -1,7 +1,7 @@
-const { RES_MESSAGES } = require("../core/variables.constants");
-const { Reservation } = require('../database')
-const { HttpStatus } = require("../core/http_status.constants");
-const ResHandler = require("../helpers/responseHandler.helper");
+const { RES_MESSAGES } = require("../../core/variables.constants");
+const { Reservation } = require('../../database')
+const { HttpStatus } = require("../../core/http_status.constants");
+const ResHandler = require("../../helpers/responseHandler.helper");
 
 
 exports.create = async (req, res) => {
@@ -11,6 +11,7 @@ exports.create = async (req, res) => {
 		return resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.RESERVATION.SUCCESS.CREATED,
+			reservation
 		);
 	}
 	catch (error) {
@@ -123,15 +124,20 @@ exports.update = async (req, res) => {
 	try {
 		const reservation = await Reservation.findByPk(req.params.id);
 
-		if (reservation !== null && reservation !== undefined) {
-
-			reservation = req.body
+		if (reservation !== null && reservation !== undefined)
+		{
+			reservation.propertyId = req.body.propertyId
+			reservation.clientName = req.body.clientName
+			reservation.clientEmail = req.body.clientEmail
+			reservation.clientPhone = req.body.clientPhone
+			reservation.comment = req.body.comment
+			reservation.status = req.body.status
 
 			await reservation.update();
 			return resHandler.setSuccess(
 				HttpStatus.OK,
 				RES_MESSAGES.RESERVATION.SUCCESS.UPDATED,
-				{}
+				reservation
 			);
 		}
 

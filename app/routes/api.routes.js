@@ -5,8 +5,9 @@ const cardRoutes = require("../features/card/card.route");
 const folderRoutes = require("../features/folder/folder.route");
 const othersRoutes = require("../features/others/others.route");
 
-const propertyRoutes = require("../routes/property.routes");
-const reservationRoutes = require("../routes/reservation.routes");
+const propertyRoutes = require("../features/property/property.routes");
+const reservationRoutes = require("../features/reservation/reservation.routes");
+const userRoutes = require("../features/user/user.route");
 
 const { authMiddleware } = require("../middlewares/auth.middleware");
 
@@ -15,11 +16,12 @@ const { authMiddleware } = require("../middlewares/auth.middleware");
 router.use("/auth", authRoutes);
 router.use("/property", propertyRoutes);
 router.use("/reservation", reservationRoutes);
-// router.use("/service",[authMiddleware], serviceRoutes);
-// router.use("/card",[authMiddleware], cardRoutes);
-// router.use("/folder",[authMiddleware], folderRoutes);
-// router.use("/others",[authMiddleware], othersRoutes);
+router.use("/user", userRoutes);
 
+// router.use("/service", [authMiddleware], serviceRoutes);
+// router.use("/card", [authMiddleware], cardRoutes);
+// router.use("/folder", [authMiddleware], folderRoutes);
+// router.use("/others", [authMiddleware], othersRoutes);
 
 
 

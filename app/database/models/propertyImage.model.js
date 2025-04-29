@@ -18,5 +18,5 @@ exports.PropertyImage = sequelize.define("PropertyImage", {
 });
 
 
-// crud: use transaction to ensure data is created, then file uploaded, data is created => apply transactionx
+// crud: use transaction to ensure Property data is created, then file uploaded, Image data is created => apply transactionx
 // fetch property id before transaction is DONE
