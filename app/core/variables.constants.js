@@ -65,6 +65,9 @@ exports.RES_MESSAGES = {
       NOT_FOUND: "reservation_not_found",
       PHONE: "reservations_with_phone_not_found",
       PROPERTY: "reservations_with_property_not_found",
+      DATE_CREATE: "date_creation_failed",
+      DATE_UPDATE: "date_update_failed",
+      DATE_DELETE: "date_delete_failed",
     },
   },
 

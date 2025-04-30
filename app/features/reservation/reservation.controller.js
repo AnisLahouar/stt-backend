@@ -2,12 +2,21 @@ const { RES_MESSAGES } = require("../../core/variables.constants");
 const { Reservation } = require('../../database')
 const { HttpStatus } = require("../../core/http_status.constants");
 const ResHandler = require("../../helpers/responseHandler.helper");
+const { createDates, replaceDates, deleteDates } = require("./reservationData.service");
 
 
 exports.create = async (req, res) => {
 	const resHandler = new ResHandler(res);
 	try {
-		const reservation = await Reservation.create(req.body)
+		const reservation = await Reservation.create(req.body.reservation)
+
+		const { status, dates } = createDates(reservation.id, req.body.dates);
+
+		if (!status)
+			throw new Error(RES_MESSAGES.RESERVATION.ERROR.DATE_CREATE);
+
+		reservation.dates = dates;
+
 		return resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.RESERVATION.SUCCESS.CREATED,
@@ -25,11 +34,11 @@ exports.create = async (req, res) => {
 exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler(res);
 	try {
-		const properties = await Reservation.findAll();
+		const reservations = await Reservation.findAll();
 		return resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.RESERVATION.SUCCESS.FOUND_ALL,
-			properties
+			reservations
 		);
 	}
 	catch (error) {
@@ -124,8 +133,7 @@ exports.update = async (req, res) => {
 	try {
 		const reservation = await Reservation.findByPk(req.params.id);
 
-		if (reservation !== null && reservation !== undefined)
-		{
+		if (reservation !== null && reservation !== undefined) {
 			reservation.propertyId = req.body.propertyId
 			reservation.clientName = req.body.clientName
 			reservation.clientEmail = req.body.clientEmail
@@ -133,7 +141,14 @@ exports.update = async (req, res) => {
 			reservation.comment = req.body.comment
 			reservation.status = req.body.status
 
+			const {status, dates} = await replaceDates(reservation.id, req.body.dates)
+
+			if (!status) throw new Error(RES_MESSAGES.RESERVATION.ERROR.DATE_UPDATE)
+
 			await reservation.update();
+
+			reservation.dates = dates;
+
 			return resHandler.setSuccess(
 				HttpStatus.OK,
 				RES_MESSAGES.RESERVATION.SUCCESS.UPDATED,
@@ -159,6 +174,11 @@ exports.delete = async (req, res) => {
 
 		if (reservation !== null && reservation !== undefined) {
 			await reservation.destroy();
+			
+			const {status, result} = await deleteDates(req.params.id)
+
+			if (!status) throw new Error(RES_MESSAGES.RESERVATION.ERROR.DATE_DELETE)
+			
 			return resHandler.setSuccess(
 				HttpStatus.OK,
 				RES_MESSAGES.RESERVATION.SUCCESS.DELETED,
