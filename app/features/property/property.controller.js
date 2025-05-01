@@ -3,20 +3,40 @@ const { Property, User } = require('../../database')
 const { HttpStatus } = require("../../core/http_status.constants");
 
 const ResHandler = require("../../helpers/responseHandler.helper");
+const { UploadFile } = require("../files/multer.service");
+const { createImageData } = require("../propertyImage/propertyImage.service");
 
 
 exports.create = async (req, res) => {
 	const resHandler = new ResHandler(res);
 	try {
-		const user = await User.findByPk(req.body.ownerId);
+		let property = req.body.property;
+		const user = await User.findByPk(property.ownerId);
 		if (user === null || user === undefined)
 			return resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.USER_NOT_FOUND);
 
-		const property = await Property.create(req.body)
+		property = await Property.create(property)
+
+		const filesUrl = []
+		for (let index = 0; index < req.files.length; index++) {
+			const file = req.files[index];
+			const { status, result } = await UploadFile(file)
+			if (status)
+				filesUrl.push(result)
+		}
+
+		const imagesData = [];
+		for (let index = 0; index < filesUrl.length; index++) {
+			const { status, result } = await createImageData(property, filesUrl[index])
+			if (status)
+				imagesData.push(result)
+		}
 
 		user.propertyCount++;
 
 		await user.update();
+
+		property.images = imagesData;
 
 		return resHandler.setSuccess(
 			HttpStatus.OK,

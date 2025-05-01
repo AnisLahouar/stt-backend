@@ -5,8 +5,6 @@
 		🟩 get> "/" => GetAll
 		🟩 post> "/" => CreateOne
 
-
-
 🟥Property:
 	CRUD EndPoints:
 		BaseURL: ["property"]
@@ -18,7 +16,9 @@
 		🟩 delete> "/:id" => DeleteOne
 
 🟥Property_Image:
-
+	Service:
+	🟥 Create File > CREATE
+	🟥 Delete Files > DeleteAll
 
 🟥Reservation:
 	CRUD EndPoints:

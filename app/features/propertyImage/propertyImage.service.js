@@ -3,8 +3,7 @@ const { PropertyImage } = require("../../database");
 const ResHandler = require("../../helpers/responseHandler.helper");
 
 
-exports.create = async (property, fileName) => {
-	// const resHandler = new ResHandler(res);
+exports.createImageData = async (property, fileName) => {
 	try {
 		const imageData = await PropertyImage.create({
 			propertyId: property.id,
@@ -13,13 +12,14 @@ exports.create = async (property, fileName) => {
 
 		return {
 			staus: true,
-			message: RES_MESSAGES.PROPERTY.SUCCESS.FOUND_ALL
+			result: imageData,
+			message: RES_MESSAGES.PROPERTY_IMAGE.SUCCESS.CREATED
 		}
 	}
 	catch (error) {
 		return {
 			staus: false,
-			message: RES_MESSAGES.PROPERTY.SUCCESS.FOUND_ALL
+			message: error.message
 		}
 	}
 }
