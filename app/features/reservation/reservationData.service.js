@@ -1,4 +1,4 @@
-const { ReservationDate, ReservationDate } = require("../../database")
+const { ReservationDate } = require("../../database")
 
 exports.createDates = async (reservationId, inDates) => {
 	try {
