@@ -1,38 +1,41 @@
 🟥User:
-    Model: Add property count, Status (Active and Inactive)
-    CRUD EndPoints:
-        BaseURL: ["user"]
-        🟩 get> "/" => GetAll
-        🟩 post> "/" => CreateOne
+	Model: Add property count, Status (Active and Inactive)
+	CRUD EndPoints:
+		BaseURL: ["user"]
+		🟩 get> "/" => GetAll
+		🟩 post> "/" => CreateOne
 
 
 
 🟥Property:
-    CRUD EndPoints:
-        BaseURL: ["property"]
-        🟩 get> "/" => GetAll
-        🟩 get> "/owner/:id" => GetAllByOwner
-        🟩 get> "/:id" => GetOne
-        🟩 post> "/" => CreateOne
-        🟩 put> "/:id" => UpdateOne
-        🟩 delete> "/:id" => DeleteOne
+	CRUD EndPoints:
+		BaseURL: ["property"]
+		🟩 get> "/" => GetAll
+		🟩 get> "/owner/:id" => GetAllByOwner
+		🟩 get> "/:id" => GetOne
+		🟩 post> "/" => CreateOne
+		🟩 put> "/:id" => UpdateOne
+		🟩 delete> "/:id" => DeleteOne
 
 🟥Property_Image:
 
 
 🟥Reservation:
-    CRUD EndPoints:
-        BaseURL: ["reservation"]
-        🟩 get> "/" => GetAll
-        🟩 get> "/user/:phone" => GetAllByPhone
-        🟩 get> "/propery/:id" => GetAllByProperty
-        🟩 get> "/:id" => GetOne
-        🟩 post> "/" => CreateOne
-        🟩 put> "/:id" => UpdateOne
-        🟩 delete> "/:id" => DeleteOne
+	CRUD EndPoints:
+		BaseURL: ["reservation"]
+		🟩 get> "/" => GetAll
+		🟩 get> "/user/:phone" => GetAllByPhone
+		🟩 get> "/propery/:id" => GetAllByProperty
+		🟩 get> "/:id" => GetOne
+		🟩 post> "/" => CreateOne
+		🟩 put> "/:id" => UpdateOne
+		🟩 delete> "/:id" => DeleteOne
 
 🟥Reservation_Date:
-
+	Service:
+	🟩 CREATE
+	🟩 DeleteAll
+	🟩 UPDATE => DELETE + INSERT
 
 Analytics
 
