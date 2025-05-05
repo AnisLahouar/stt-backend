@@ -1,8 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const controller = require('./property.controller')
+const controller = require('./property.controller');
+const { createMulterMemoryMiddleware } = require("../../middlewares/multer.middleware");
 
-router.post('/', controller.create)
+const multerMiddleware = createMulterMemoryMiddleware({
+    fieldName: "images",
+    maxCount: 8,
+    maxFileSizeMB: 5
+})
+
+router.post('/', [multerMiddleware], controller.create)
 router.get('/', controller.findAll)
 router.get('/owner/:id', controller.findByOwner)
 router.get('/:id', controller.findOne)

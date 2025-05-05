@@ -17,7 +17,7 @@
 
 🟥Property_Image:
 	Service:
-	🟥 Create File > CREATE
+	🟩 Create File > CREATE
 	🟥 Delete Files > DeleteAll
 
 🟥Reservation:

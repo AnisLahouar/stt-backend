@@ -1,14 +1,16 @@
 const { RES_MESSAGES } = require("../../core/variables.constants");
-const { Property, User } = require('../../database')
+const { Property, User, sequelize } = require('../../database')
 const { HttpStatus } = require("../../core/http_status.constants");
 
 const ResHandler = require("../../helpers/responseHandler.helper");
-const { UploadFile } = require("../files/multer.service");
-const { createImageData } = require("../propertyImage/propertyImage.service");
+const { createImageData, UploadFile } = require("../propertyImage/propertyImage.service");
 
 
 exports.create = async (req, res) => {
 	const resHandler = new ResHandler();
+	const transaction1 = await sequelize.transaction()
+	const transaction2 = await sequelize.transaction()
+	let tempProperty;
 	try {
 		let property = req.body.property;
 		const user = await User.findByPk(property.ownerId);
@@ -18,35 +20,44 @@ exports.create = async (req, res) => {
 		}
 
 		property = await Property.create(property)
+		tempProperty = property;
 
 		const filesUrl = []
-		for (let index = 0; index < req.files.length; index++) {
-			const file = req.files[index];
-			const { status, result } = await UploadFile(file)
-			if (status)
-				filesUrl.push(result)
-		}
+		const files = req.files.filter((file) => file.fieldname === "images")
+		const filesPromises = files.map(async element => {
+			const index = files.indexOf(element)
+			const resultPath = await UploadFile(element, 'property', `${property.id}_${index}`)
+			filesUrl.push(resultPath)
+		})
+		await Promise.all(filesPromises)
 
 		const imagesData = [];
-		for (let index = 0; index < filesUrl.length; index++) {
-			const { status, result } = await createImageData(property, filesUrl[index])
+		const dataPromises = filesUrl.map(async element => {
+			const { status, result } = await createImageData(property, element, transaction2)
 			if (status)
 				imagesData.push(result)
-		}
+		})
+		await Promise.all(dataPromises)
+
+		await transaction1.commit()
+		await transaction2.commit()
 
 		user.propertyCount++;
 
 		await user.update();
 
-		property.images = imagesData;
+		const result = {...property, imagesData};
 
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.PROPERTY.SUCCESS.CREATED,
-			property
+			result
 		);
 		return resHandler.send(res)
 	} catch (error) {
+		await transaction1.rollback()
+		await transaction2.rollback()
+		await tempProperty.destroy()
 		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`

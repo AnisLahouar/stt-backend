@@ -10,7 +10,7 @@ console.log("isProduction", process.env.NODE_ENV);
 
 
 const corsOptions = {
-  origin:"*",
+  origin: "*",
   credentials: false,
   methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
   allowedHeaders: 'Authorization, Content-Type, Accept',
@@ -19,7 +19,9 @@ const corsOptions = {
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
-app.use(express.json());
+app.use(express.json(
+  { limit: "50mb" }
+));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(routes);

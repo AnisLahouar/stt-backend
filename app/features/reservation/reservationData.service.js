@@ -26,7 +26,7 @@ exports.replaceDates = async (inReservationId, inDates) => {
 			where: { reservationId: inReservationId }
 		})
 
-		await Promise.all(oldDates.map(element => element.destroy()));
+		await Promise.all(oldDates.map(async element => await element.destroy()));
 
 		const dates = await ReservationDate.bulkCreate(convertToSQLDate(inReservationId, inDates))
 
@@ -50,7 +50,7 @@ exports.deleteDates = async (inReservationId) => {
 			where: { reservationId: inReservationId }
 		})
 
-		await Promise.all(dates.map(element => element.destroy()));
+		await Promise.all(dates.map(async element => await element.destroy()));
 
 		return {
 			status: true,
