@@ -37,4 +37,6 @@ exports.Property = sequelize.define("Property", {
     type: DataTypes.ENUM("pending", "accepted", "hidden"),
     defaultValue: "pending"
   }
+}, {
+  paranoid: true
 });

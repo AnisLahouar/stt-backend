@@ -8,6 +8,6 @@ router.get('/:id', controller.findOne)
 router.get('/user/:phone', controller.findByPhone)
 router.get('/property/:id', controller.findByProperty)
 router.put('/:id', controller.update)
-router.delete('/:id', controller.delete)
+// router.delete('/:id', controller.delete)
 
 module.exports = router

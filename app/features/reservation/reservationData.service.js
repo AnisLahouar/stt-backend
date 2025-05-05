@@ -1,4 +1,5 @@
 const { ReservationDate } = require("../../database")
+const { toMySQLDate, formatMySQLDate } = require("../../helpers/date.helper")
 
 exports.createDates = async (reservationId, inDates) => {
 	try {
@@ -7,7 +8,7 @@ exports.createDates = async (reservationId, inDates) => {
 
 		return {
 			status: true,
-			dates: dates
+			dates: revertFromSQLDate(dates)
 		}
 	}
 	catch (error) {
@@ -25,16 +26,13 @@ exports.replaceDates = async (inReservationId, inDates) => {
 			where: { reservationId: inReservationId }
 		})
 
-		for (let index = 0; index < oldDates.length; index++) {
-			const element = oldDates[index];
-			await element.destroy()
-		}
+		await Promise.all(oldDates.map(element => element.destroy()));
 
 		const dates = await ReservationDate.bulkCreate(convertToSQLDate(inReservationId, inDates))
 
 		return {
 			status: true,
-			dates: dates
+			dates: revertFromSQLDate(dates)
 		}
 	}
 	catch (error) {
@@ -52,10 +50,7 @@ exports.deleteDates = async (inReservationId) => {
 			where: { reservationId: inReservationId }
 		})
 
-		for (let index = 0; index < dates.length; index++) {
-			const element = dates[index];
-			await element.destroy()
-		}
+		await Promise.all(dates.map(element => element.destroy()));
 
 		return {
 			status: true,
@@ -70,13 +65,22 @@ exports.deleteDates = async (inReservationId) => {
 	}
 }
 
+function revertFromSQLDate(inDates){
+	let result = [];
+	for (let index = 0; index < inDates.length; index++) {
+		result.push({
+			date: formatMySQLDate(inDates[index].date)
+		})
+	}
+	return result;
+}
+
 function convertToSQLDate(inReservationId, inDates) {
 	let result = [];
 	for (let index = 0; index < inDates.length; index++) {
-		const element = inDates[index];
 		result.push({
 			reservationId: inReservationId,
-			date: element
+			date: toMySQLDate(inDates[index])
 		})
 	}
 	return result;

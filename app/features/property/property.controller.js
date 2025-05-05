@@ -8,12 +8,14 @@ const { createImageData } = require("../propertyImage/propertyImage.service");
 
 
 exports.create = async (req, res) => {
-	const resHandler = new ResHandler(res);
+	const resHandler = new ResHandler();
 	try {
 		let property = req.body.property;
 		const user = await User.findByPk(property.ownerId);
-		if (user === null || user === undefined)
-			return resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.USER_NOT_FOUND);
+		if (!user) {
+			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.USER_NOT_FOUND);
+			return resHandler.send(res)
+		}
 
 		property = await Property.create(property)
 
@@ -38,82 +40,91 @@ exports.create = async (req, res) => {
 
 		property.images = imagesData;
 
-		return resHandler.setSuccess(
+		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.PROPERTY.SUCCESS.CREATED,
 			property
 		);
+		return resHandler.send(res)
 	} catch (error) {
-		return resHandler.setError(
+		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
 		)
+		return resHandler.send(res)
 	}
 }
 
 exports.findAll = async (req, res) => {
-	const resHandler = new ResHandler(res);
+	const resHandler = new ResHandler();
 	try {
 		const properties = await Property.findAll();
-		return resHandler.setSuccess(
+		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.PROPERTY.SUCCESS.FOUND_ALL,
 			properties
 		);
+		return resHandler.send(res)
 	} catch (error) {
-		return resHandler.setError(
+		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
 		);
+		return resHandler.send(res)
 	}
 };
 
 exports.findByOwner = async (req, res) => {
-	const resHandler = new ResHandler(res);
+	const resHandler = new ResHandler();
 	try {
 		const properties = await Property.findAll({
 			where: {
 				ownerId: req.params.id
 			}
 		});
-		return resHandler.setSuccess(
+		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.PROPERTY.SUCCESS.FOUND_ALL,
 			properties
 		);
+		return resHandler.send(res)
 	} catch (error) {
-		return resHandler.setError(
+		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
 		);
+		return resHandler.send(res)
 	}
 };
 
 exports.findOne = async (req, res) => {
-	const resHandler = new ResHandler(res);
+	const resHandler = new ResHandler();
 	try {
 		const property = await Property.findByPk(req.params.id);
 
 		if (property !== null && property !== undefined) {
-			return resHandler.setSuccess(
+			resHandler.setSuccess(
 				HttpStatus.OK,
 				RES_MESSAGES.PROPERTY.SUCCESS.FOUND,
 				property
 			);
+			return resHandler.send(res)
 		}
 
-		return resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.NOT_FOUND);
+		resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.NOT_FOUND);
+		return resHandler.send(res)
 	}
 	catch (error) {
-		return resHandler.setError(
+		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
 		);
+		return resHandler.send(res)
 	}
 };
 
 exports.update = async (req, res) => {
-	const resHandler = new ResHandler(res);
+	const resHandler = new ResHandler();
 	try {
 		const property = await Property.findByPk(req.params.id);
 
@@ -121,8 +132,10 @@ exports.update = async (req, res) => {
 
 			const user = await User.findByPk(req.body.ownerId);
 
-			if (user === null || user === undefined)
-				return resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.USER_NOT_FOUND);
+			if (!user) {
+				resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.USER_NOT_FOUND);
+				return resHandler.send(res)
+			}
 
 			property.ownerId = req.body.ownerId;
 			property.title = req.body.title;
@@ -135,26 +148,29 @@ exports.update = async (req, res) => {
 			property.status = req.body.status;
 
 			await property.update();
-			return resHandler.setSuccess(
+			resHandler.setSuccess(
 				HttpStatus.OK,
 				RES_MESSAGES.PROPERTY.SUCCESS.UPDATED,
 				property
 			);
+			return resHandler.send(res)
 		}
 
-		return resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.NOT_FOUND);
+		resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.NOT_FOUND);
+		return resHandler.send(res)
 
 	}
 	catch (error) {
-		return resHandler.setError(
+		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
 		);
+		return resHandler.send(res)
 	}
 };
 
 exports.delete = async (req, res) => {
-	const resHandler = new ResHandler(res);
+	const resHandler = new ResHandler();
 	try {
 		const property = await Property.findByPk(req.params.id);
 
@@ -162,8 +178,10 @@ exports.delete = async (req, res) => {
 
 			const user = await User.findByPk(req.body.ownerId);
 
-			if (user === null || user === undefined)
-				return resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.USER_NOT_FOUND);
+			if (!user) {
+				resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.USER_NOT_FOUND);
+				return resHandler.send(res)
+			}
 
 			await property.destroy();
 
@@ -171,20 +189,23 @@ exports.delete = async (req, res) => {
 
 			await user.update();
 
-			return resHandler.setSuccess(
+			resHandler.setSuccess(
 				HttpStatus.OK,
 				RES_MESSAGES.PROPERTY.SUCCESS.DELETED,
 				{}
 			);
+			return resHandler.send(res)
 		}
 
-		return resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.NOT_FOUND);
+		resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.NOT_FOUND);
+		return resHandler.send(res)
 
 	}
 	catch (error) {
-		return resHandler.setError(
+		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
 		);
+		return resHandler.send(res)
 	}
 };
