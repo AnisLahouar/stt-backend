@@ -3,7 +3,9 @@
 	CRUD EndPoints:
 		BaseURL: ["user"]
 		🟩 get> "/" => GetAll + pagination
+		🟩 get> "/:id" => GetOne
 		🟩 post> "/" => CreateOne
+		🟩 put> "/:id" => update
 
 🟥Property:
 	CRUD EndPoints:

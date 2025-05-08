@@ -15,7 +15,7 @@ exports.create = async (req, res) => {
 			);
 			return resHandler.send(res)
 		}
-		if (!email || !name || !password || !phone || !address || !role || !status) {
+		if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
 			resHandler.setError(
 				HttpStatus.BAD_REQUEST,
 				RES_MESSAGES.MISSING_PARAMETERS,
@@ -50,7 +50,7 @@ exports.findAll = async (req, res) => {
 			req.query.direction
 		);
 
-		const users = await User.findAll({...pagination});
+		const users = await User.findAll({ ...pagination });
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.USER.SUCCESS.FOUND_ALL,
@@ -64,4 +64,85 @@ exports.findAll = async (req, res) => {
 		)
 		return resHandler.send(res)
 	}
+}
+
+exports.findOne = async (req, res) => {
+	const resHandler = new ResHandler();
+	try {
+		const user = await User.findByPk(req.params.id)
+		if (!user) {
+			resHandler.setError(
+				HttpStatus.NOT_FOUND,
+				RES_MESSAGES.USER.ERROR.NOT_FOUND
+			)
+			return resHandler(res)
+		}
+
+		resHandler.setSuccess(
+			HttpStatus.OK,
+			RES_MESSAGES.USER.SUCCESS.FOUND,
+			user
+		)
+		return resHandler.send(res)
+	} catch (error) {
+		resHandler.setError(
+			HttpStatus.INTERNAL_SERVER_ERROR,
+			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+		)
+		return resHandler.send(res)
+	}
+}
+
+exports.update = async (req, res) => {
+	const resHandler = new ResHandler();
+	try {
+		const { email, name, password, phone, address, role, status } = req.body
+
+		if (role == 'admin') {
+			resHandler.setError(
+				HttpStatus.BAD_REQUEST,
+				RES_MESSAGES.INVALID_PARAMETERS,
+			);
+			return resHandler.send(res)
+		}
+
+		if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
+			resHandler.setError(
+				HttpStatus.BAD_REQUEST,
+				RES_MESSAGES.MISSING_PARAMETERS,
+			);
+			return resHandler.send(res)
+		}
+
+		let user = await User.findByPk(req.params.id)
+		if (!user) {
+			resHandler.setError(
+				HttpStatus.NOT_FOUND,
+				RES_MESSAGES.USER.ERROR.NOT_FOUND
+			)
+			return resHandler(res)
+		}
+
+		user = await User.update({ email, name, password, phone, address, role, status });
+		resHandler.setSuccess(
+			HttpStatus.OK,
+			RES_MESSAGES.USER.SUCCESS.CREATED,
+			user
+		);
+		return resHandler.send(res)
+
+	} catch (error) {
+		resHandler.setError(
+			HttpStatus.INTERNAL_SERVER_ERROR,
+			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+		)
+		return resHandler.send(res)
+	}
+}
+
+function isUserDataValid(inData) {
+	if (!inData.email || !inData.name || !inData.password || !inData.phone || !inData.address || !inData.status) {
+		return false
+	}
+	return true
 }
