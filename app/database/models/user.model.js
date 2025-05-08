@@ -11,7 +11,8 @@ exports.User = sequelize.define(
       allowNull: false
     },
     email: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      defaultValue: ""
     },
     name: {
       type: DataTypes.STRING
@@ -23,19 +24,24 @@ exports.User = sequelize.define(
       type: DataTypes.STRING
     },
     address: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      defaultValue: ""
     },
     role: {
-      type: DataTypes.ENUM("admin", "owner", "client")
+      type: DataTypes.ENUM("admin", "owner", "client"),
+      defaultValue: "client"
     },
     propertyCount: {
       type: DataTypes.INTEGER,
+      defaultValue: 0
     },
-    staus: {
-      type: DataTypes.ENUM("active", "inactive")
+    status: {
+      type: DataTypes.ENUM("active", "inactive"),
+      defaultValue: "active"
     }
   },
   {
-    indexes: [{ unique: true, fields: ["email"] }]
+    indexes: [{ unique: true, fields: ["email"] }],
+    paranoid: true
   }
 );

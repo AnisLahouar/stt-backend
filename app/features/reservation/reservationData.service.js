@@ -6,16 +6,11 @@ exports.createDates = async (reservationId, inDates) => {
 
 		const dates = await ReservationDate.bulkCreate(convertToSQLDate(reservationId, inDates))
 
-		return {
-			status: true,
-			dates: revertFromSQLDate(dates)
-		}
+		return revertFromSQLDate(dates)
+
 	}
 	catch (error) {
-		return {
-			status: false,
-			dates: error
-		}
+		throw new Error("Create Dates Failed")
 	}
 }
 
@@ -30,16 +25,10 @@ exports.replaceDates = async (inReservationId, inDates) => {
 
 		const dates = await ReservationDate.bulkCreate(convertToSQLDate(inReservationId, inDates))
 
-		return {
-			status: true,
-			dates: revertFromSQLDate(dates)
-		}
+		return revertFromSQLDate(dates)
 	}
 	catch (error) {
-		return {
-			status: false,
-			dates: error
-		}
+		throw new Error("Update Dates Failed")
 	}
 }
 
@@ -52,20 +41,14 @@ exports.deleteDates = async (inReservationId) => {
 
 		await Promise.all(dates.map(async element => await element.destroy()));
 
-		return {
-			status: true,
-			dates: []
-		}
+		return []
 	}
 	catch (error) {
-		return {
-			status: false,
-			dates: error
-		}
+		throw new Error(RES_MESSAGES.RESERVATION.ERROR.DATE_DELETE)
 	}
 }
 
-function revertFromSQLDate(inDates){
+function revertFromSQLDate(inDates) {
 	let result = [];
 	for (let index = 0; index < inDates.length; index++) {
 		result.push({

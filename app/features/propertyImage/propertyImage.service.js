@@ -1,7 +1,6 @@
 const { RES_MESSAGES } = require("../../core/variables.constants");
 const { PropertyImage } = require("../../database");
 const { compressImageBuffer, saveImageToDisk } = require("../../helpers/image.helper");
-const ResHandler = require("../../helpers/responseHandler.helper");
 
 exports.createImageData = async (property, fileName, inTransaction) => {
   try {

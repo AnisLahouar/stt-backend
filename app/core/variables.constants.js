@@ -77,7 +77,7 @@ exports.RES_MESSAGES = {
       FOUND: "user_found",
       FOUND_ALL: "users_found",
       UPDATED: "user_updated",
-      DELETED: "user_deleted"
+      DELETED: "user_deleted",
     },
     ERROR: {
       NOT_FOUND: "user_not_found",

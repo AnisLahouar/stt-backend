@@ -1,23 +1,44 @@
 const { RES_MESSAGES } = require("../../core/variables.constants");
-const { Reservation, ReservationDate } = require('../../database')
+const { Reservation, ReservationDate, sequelize } = require('../../database')
 const { HttpStatus } = require("../../core/http_status.constants");
 const ResHandler = require("../../helpers/responseHandler.helper");
 const { createDates, replaceDates, deleteDates } = require("./reservationData.service");
+const { propertyExists } = require("../property/property.service");
 
 
 exports.create = async (req, res) => {
 	const resHandler = new ResHandler();
+	const transaction = await sequelize.transaction()
 	try {
-		const reservation = await Reservation.create(req.body.reservation)
+		let { propertyId, clientName, clientEmail, clientPhone, comment, status } = req.body.reservation
+		const { dates } = req.body
 
-		const { status, dates } = createDates(reservation.id, req.body.dates);
+		if (!isReservationBodyValid({ propertyId, clientName, clientEmail, clientPhone, comment, status })
+			|| !isDatesBodyValid(dates)) {
+			resHandler.setError(
+				HttpStatus.BAD_REQUEST,
+				RES_MESSAGES.MISSING_PARAMETERS,
+			);
+			return resHandler.send(res)
+		}
 
-		if (!status)
-			throw new Error(RES_MESSAGES.RESERVATION.ERROR.DATE_CREATE);
+		const isPropertyValid = await propertyExists(propertyId);
 
-		reservation.dates = dates;
-		const result = { ...reservation.toJSON(), dates }
+		if (!isPropertyValid) {
+			resHandler.setError(
+				HttpStatus.NOT_FOUND,
+				RES_MESSAGES.INVALID_PARAMETERS,
+			);
+			return resHandler.send(res)
+		}
 
+		status = 'pending'
+		const createdReservation = await Reservation.create({ propertyId, clientName, clientEmail, clientPhone, comment, status }, transaction)
+		const createdDates = await createDates(createdReservation.id, dates);
+
+		const result = { ...createdReservation.toJSON(), createdDates }
+
+		await transaction.commit();
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.RESERVATION.SUCCESS.CREATED,
@@ -26,6 +47,7 @@ exports.create = async (req, res) => {
 		return resHandler.send(res)
 	}
 	catch (error) {
+		await transaction.rollback
 		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
@@ -160,23 +182,34 @@ exports.findByProperty = async (req, res) => {
 exports.update = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+		let { propertyId, clientName, clientEmail, clientPhone, comment, status } = req.body.reservation
+		const { dates } = req.body
+
+		if (!isReservationBodyValid({ propertyId, clientName, clientEmail, clientPhone, comment, status })
+			|| !isDatesBodyValid(dates)
+		) {
+			resHandler.setError(
+				HttpStatus.BAD_REQUEST,
+				RES_MESSAGES.MISSING_PARAMETERS,
+			);
+			return resHandler.send(res)
+		}
+
 		const reservation = await Reservation.findByPk(req.params.id);
 
 		if (reservation !== null && reservation !== undefined) {
-			reservation.propertyId = req.body.propertyId
-			reservation.clientName = req.body.clientName
-			reservation.clientEmail = req.body.clientEmail
-			reservation.clientPhone = req.body.clientPhone
-			reservation.comment = req.body.comment
-			reservation.status = req.body.status
+			reservation.propertyId = propertyId
+			reservation.clientName = clientName
+			reservation.clientEmail = clientEmail
+			reservation.clientPhone = clientPhone
+			reservation.comment = comment
+			reservation.status = status
 
-			const { status, dates } = await replaceDates(reservation.id, req.body.dates)
-
-			if (!status) throw new Error(RES_MESSAGES.RESERVATION.ERROR.DATE_UPDATE)
+			const createdDates = await replaceDates(reservation.id, req.body.dates)
 
 			await reservation.update();
 
-			const result = { ...reservation.toJSON(), dates }
+			const result = { ...reservation.toJSON(), createdDates }
 
 			resHandler.setSuccess(
 				HttpStatus.OK,
@@ -206,9 +239,7 @@ exports.delete = async (req, res) => {
 		if (reservation !== null && reservation !== undefined) {
 			await reservation.destroy();
 
-			const { status, result } = await deleteDates(req.params.id)
-
-			if (!status) throw new Error(RES_MESSAGES.RESERVATION.ERROR.DATE_DELETE)
+			await deleteDates(req.params.id)
 
 			resHandler.setSuccess(
 				HttpStatus.OK,
@@ -229,3 +260,32 @@ exports.delete = async (req, res) => {
 		return resHandler.send(res)
 	}
 };
+
+
+
+function isReservationBodyValid(inReservation) {
+
+	if (!propertyId || !clientName || !clientEmail || !clientPhone || !comment) {
+		return false
+	}
+	return true
+}
+
+function isDatesBodyValid(inDates) {
+	if (!Array.isArray(inDates)) {
+		// throw new Error("reservation must be an array");
+		return false
+	}
+
+	for (const [i, r] of inDates.entries()) {
+		const { propertyId, date } = r;
+
+		if (!propertyId || !date) {
+			// throw new Error(`Missing fields in reservation at index ${i}`);
+			return false
+		}
+
+	}
+
+	return true
+}

@@ -16,13 +16,15 @@ exports.Reservation = sequelize.define("Reservation", {
     type: DataTypes.STRING
   },
   clientEmail: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
+    defaultValue: ""
   },
   clientPhone: {
     type: DataTypes.STRING
   },
   comment: {
-    type: DataTypes.TEXT
+    type: DataTypes.TEXT,
+    defaultValue: ""
   },
   status: {
     type: DataTypes.ENUM("pending", "accepted", "declined"),

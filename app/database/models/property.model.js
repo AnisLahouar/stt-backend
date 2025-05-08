@@ -13,25 +13,31 @@ exports.Property = sequelize.define("Property", {
     allowNull: false
   },
   title: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
   },
   description: {
-    type: DataTypes.TEXT
+    type: DataTypes.TEXT,
+    defaultValue: ""
   },
   address: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
+    defaultValue: ""
   },
   pricePerDay: {
-    type: DataTypes.DECIMAL
+    type: DataTypes.DECIMAL,
+    defaultValue: 0
   },
   pricePerMonth: {
-    type: DataTypes.DECIMAL
+    type: DataTypes.DECIMAL,
+    defaultValue: 0
   },
   adminPricePerDay: {
-    type: DataTypes.DECIMAL
+    type: DataTypes.DECIMAL,
+    defaultValue: 0
   },
   adminPricePerMonth: {
-    type: DataTypes.DECIMAL
+    type: DataTypes.DECIMAL,
+    defaultValue: 0
   },
   status: {
     type: DataTypes.ENUM("pending", "accepted", "hidden"),
