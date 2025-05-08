@@ -42,7 +42,15 @@ exports.create = async (req, res) => {
 exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
-		const users = await User.findAll();
+
+		const pagination = paginate(
+			req.query.page || 0,
+			req.query.pageSize || 10,
+			req.query.orderBy,
+			req.query.direction
+		);
+
+		const users = await User.findAll({...pagination});
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.USER.SUCCESS.FOUND_ALL,

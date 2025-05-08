@@ -4,6 +4,7 @@ const { HttpStatus } = require("../../core/http_status.constants");
 
 const ResHandler = require("../../helpers/responseHandler.helper");
 const { createImageData, UploadFile } = require("../propertyImage/propertyImage.service");
+const { paginate } = require("../../helpers/paginate.helper");
 
 
 exports.create = async (req, res) => {
@@ -72,7 +73,15 @@ exports.create = async (req, res) => {
 exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
-		const properties = await Property.findAll();
+		const pagination = paginate(
+			req.query.page || 0,
+			req.query.pageSize || 10,
+			req.query.orderBy,
+			req.query.direction
+		);
+
+
+		const properties = await Property.findAll({ ...pagination });
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.PROPERTY.SUCCESS.FOUND_ALL,
@@ -91,10 +100,19 @@ exports.findAll = async (req, res) => {
 exports.findByOwner = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+
+		const pagination = paginate(
+			req.query.page || 0,
+			req.query.pageSize || 10,
+			req.query.orderBy,
+			req.query.direction
+		);
+
 		const properties = await Property.findAll({
 			where: {
 				ownerId: req.params.id
-			}
+			},
+			...pagination
 		});
 		resHandler.setSuccess(
 			HttpStatus.OK,

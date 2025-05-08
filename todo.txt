@@ -2,14 +2,14 @@
 	Model: Add property count, Status (Active and Inactive)
 	CRUD EndPoints:
 		BaseURL: ["user"]
-		🟩 get> "/" => GetAll
+		🟩 get> "/" => GetAll + pagination
 		🟩 post> "/" => CreateOne
 
 🟥Property:
 	CRUD EndPoints:
 		BaseURL: ["property"]
-		🟩 get> "/" => GetAll
-		🟩 get> "/owner/:id" => GetAllByOwner
+		🟩 get> "/" => GetAll + pagination
+		🟩 get> "/owner/:id" => GetAllByOwner + pagination
 		🟩 get> "/:id" => GetOne
 		🟩 post> "/" => CreateOne
 		🟩 put> "/:id" => UpdateOne
@@ -23,9 +23,9 @@
 🟥Reservation:
 	CRUD EndPoints:
 		BaseURL: ["reservation"]
-		🟩 get> "/" => GetAll
-		🟩 get> "/user/:phone" => GetAllByPhone
-		🟩 get> "/propery/:id" => GetAllByProperty
+		🟩 get> "/" => GetAll + pagination
+		🟩 get> "/user/:phone" => GetAllByPhone + pagination
+		🟩 get> "/propery/:id" => GetAllByProperty + pagination
 		🟩 get> "/:id" => GetOne
 		🟩 post> "/" => CreateOne
 		🟩 put> "/:id" => UpdateOne

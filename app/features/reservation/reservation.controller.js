@@ -4,6 +4,7 @@ const { HttpStatus } = require("../../core/http_status.constants");
 const ResHandler = require("../../helpers/responseHandler.helper");
 const { createDates, replaceDates, deleteDates } = require("./reservationData.service");
 const { propertyExists } = require("../property/property.service");
+const { paginate } = require("../../helpers/paginate.helper");
 
 
 exports.create = async (req, res) => {
@@ -59,10 +60,17 @@ exports.create = async (req, res) => {
 exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+		const pagination = paginate(
+			req.query.page || 0,
+			req.query.pageSize || 10,
+			req.query.orderBy,
+			req.query.direction
+		);
+
 		const reservations = await Reservation.findAll({
 			include: {
 				model: ReservationDate,
-			}
+			}, ...pagination
 		});
 		resHandler.setSuccess(
 			HttpStatus.OK,
@@ -114,13 +122,21 @@ exports.findOne = async (req, res) => {
 exports.findByPhone = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+		const pagination = paginate(
+			req.query.page || 0,
+			req.query.pageSize || 10,
+			req.query.orderBy,
+			req.query.direction
+		);
+
 		const reservations = await Reservation.findAll({
 			where: {
 				clientPhone: req.params.phone
 			},
 			include: {
 				model: ReservationDate,
-			}
+			},
+			...pagination
 		});
 
 		if (reservations !== null && reservations !== undefined
@@ -148,13 +164,22 @@ exports.findByPhone = async (req, res) => {
 exports.findByProperty = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+
+		const pagination = paginate(
+			req.query.page || 0,
+			req.query.pageSize || 10,
+			req.query.orderBy,
+			req.query.direction
+		);
+
 		const reservations = await Reservation.findAll({
 			where: {
 				propertyId: req.params.id
 			},
 			include: {
 				model: ReservationDate,
-			}
+			},
+			...pagination
 		});
 
 		if (reservations !== null && reservations !== undefined
