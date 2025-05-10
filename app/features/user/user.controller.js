@@ -3,6 +3,7 @@ const { HttpStatus } = require("../../core/http_status.constants");
 const { RES_MESSAGES } = require("../../core/variables.constants");
 
 const ResHandler = require("../../helpers/responseHandler.helper");
+const { paginate } = require("../../helpers/paginate.helper");
 
 exports.create = async (req, res) => {
 	const resHandler = new ResHandler();
@@ -12,7 +13,7 @@ exports.create = async (req, res) => {
 			resHandler.setError(
 				HttpStatus.BAD_REQUEST,
 				RES_MESSAGES.INVALID_PARAMETERS,
-			);
+		);
 			return resHandler.send(res)
 		}
 		if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
@@ -44,13 +45,13 @@ exports.findAll = async (req, res) => {
 	try {
 
 		const pagination = paginate(
-			req.query.page || 0,
+			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
 			req.query.orderBy,
 			req.query.direction
 		);
 
-		const users = await User.findAll({ ...pagination });
+		const users = await User.findAndCountAll({ ...pagination });
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.USER.SUCCESS.FOUND_ALL,

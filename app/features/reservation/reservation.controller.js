@@ -61,13 +61,13 @@ exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 		const pagination = paginate(
-			req.query.page || 0,
+			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
 			req.query.orderBy,
 			req.query.direction
 		);
 
-		const reservations = await Reservation.findAll({
+		const reservations = await Reservation.findAndCountAll({
 			include: {
 				model: ReservationDate,
 			}, ...pagination
@@ -123,13 +123,13 @@ exports.findByPhone = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 		const pagination = paginate(
-			req.query.page || 0,
+			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
 			req.query.orderBy,
 			req.query.direction
 		);
 
-		const reservations = await Reservation.findAll({
+		const reservations = await Reservation.findAndCountAll({
 			where: {
 				clientPhone: req.params.phone
 			},
@@ -166,13 +166,13 @@ exports.findByProperty = async (req, res) => {
 	try {
 
 		const pagination = paginate(
-			req.query.page || 0,
+			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
 			req.query.orderBy,
 			req.query.direction
 		);
 
-		const reservations = await Reservation.findAll({
+		const reservations = await Reservation.findAndCountAll({
 			where: {
 				propertyId: req.params.id
 			},

@@ -74,14 +74,14 @@ exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 		const pagination = paginate(
-			req.query.page || 0,
+			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
 			req.query.orderBy,
 			req.query.direction
 		);
 
 
-		const properties = await Property.findAll({ ...pagination });
+		const properties = await Property.findAndCountAll({ ...pagination });
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.PROPERTY.SUCCESS.FOUND_ALL,
@@ -102,13 +102,13 @@ exports.findByOwner = async (req, res) => {
 	try {
 
 		const pagination = paginate(
-			req.query.page || 0,
+			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
 			req.query.orderBy,
 			req.query.direction
 		);
 
-		const properties = await Property.findAll({
+		const properties = await Property.findAndCountAll({
 			where: {
 				ownerId: req.params.id
 			},
