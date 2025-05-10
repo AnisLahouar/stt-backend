@@ -10,7 +10,7 @@ exports.signup = async (req, res) => {
   const resHandler = new ResHandler(res);
   try {
     const { email, name, password, role } = req.body;
-    if(role == "admin") {
+    if (role == "admin") {
       resHandler.setSuccess(
         HttpStatus.OK,
         RES_MESSAGES.AUTH.SUCCESS.USER_CREATED,
@@ -53,18 +53,22 @@ exports.signin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const trimmedEmail = email.trim();
-    const user = await User.findOne({ where: { email : trimmedEmail } });
+    const user = await User.findOne({ where: { email: trimmedEmail } });
     if (!user) {
-      resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.USER_NOT_FOUND);
+      resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.USER.ERROR.NOT_FOUND);
+      return resHandler.send(res);
+    }
+    if (user.status != 'active') {
+      resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.USER.ERROR.INACTIVE);
       return resHandler.send(res);
     }
     if (user.password !== password) {
-      resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.WRONG_PASSWORD);
+      resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.USER.ERROR.WRONG_PASSWORD);
       return resHandler.send(res);
     }
     const token = createToken(user.id, "1y");
     delete user.dataValues.password;
-    resHandler.setSuccess(HttpStatus.OK, RES_MESSAGES.USER_FOUND, {
+    resHandler.setSuccess(HttpStatus.OK, RES_MESSAGES.USER.SUCCESS.FOUND, {
       user,
       token
     });

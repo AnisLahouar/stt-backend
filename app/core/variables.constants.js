@@ -81,6 +81,8 @@ exports.RES_MESSAGES = {
     },
     ERROR: {
       NOT_FOUND: "user_not_found",
+      WRONG_PASSWORD: "wrong_password",
+      INACTIVE: "inactive_user"
     },
   }
 };
