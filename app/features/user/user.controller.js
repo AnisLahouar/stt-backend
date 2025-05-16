@@ -4,6 +4,7 @@ const { RES_MESSAGES } = require("../../core/variables.constants");
 
 const ResHandler = require("../../helpers/responseHandler.helper");
 const { paginate } = require("../../helpers/paginate.helper");
+const { Op } = require("sequelize");
 
 exports.create = async (req, res) => {
 	const resHandler = new ResHandler();
@@ -43,6 +44,7 @@ exports.create = async (req, res) => {
 exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+		const search = sanitizeSearchInput(req.query.search);
 
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
@@ -51,7 +53,20 @@ exports.findAll = async (req, res) => {
 			req.query.direction
 		);
 
-		const users = await User.findAndCountAll({ ...pagination });
+		const whereClause = search
+			? {
+				[Op.or]: [
+					{ email: { [Op.like]: `%${search}%` } },
+					{ name: { [Op.like]: `%${search}%` } },
+					{ phone: { [Op.like]: `%${search}%` } },
+					{ address: { [Op.like]: `%${search}%` } },
+					{ role: { [Op.like]: `%${search}%` } },
+					{ status: { [Op.like]: `%${search}%` } },
+				]
+			}
+			: {};
+
+		const users = await User.findAndCountAll({ ...pagination, where: whereClause });
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.USER.SUCCESS.FOUND_ALL,
