@@ -133,7 +133,7 @@ exports.update = async (req, res) => {
 			return resHandler(res)
 		}
 
-		user = await User.update({ email, name, password, phone, address, role, status });
+		user = await user.update({ email, name, password, phone, address, role, status });
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.USER.SUCCESS.CREATED,
