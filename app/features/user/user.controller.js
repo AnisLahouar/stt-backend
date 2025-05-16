@@ -13,7 +13,7 @@ exports.create = async (req, res) => {
 			resHandler.setError(
 				HttpStatus.BAD_REQUEST,
 				RES_MESSAGES.INVALID_PARAMETERS,
-		);
+			);
 			return resHandler.send(res)
 		}
 		if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
@@ -70,6 +70,11 @@ exports.findAll = async (req, res) => {
 exports.findOne = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+
+		if (!req.params.id) {
+			throw new Error("Invalid user ID Provided")
+		}
+
 		const user = await User.findByPk(req.params.id)
 		if (!user) {
 			resHandler.setError(
@@ -77,6 +82,10 @@ exports.findOne = async (req, res) => {
 				RES_MESSAGES.USER.ERROR.NOT_FOUND
 			)
 			return resHandler(res)
+		}
+
+		if (req.user.role !== 'admin') {
+			user.password = '';
 		}
 
 		resHandler.setSuccess(
