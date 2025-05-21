@@ -1,4 +1,4 @@
-const sanitizeSearchInput = (value) => {
+export const sanitizeSearchInput = (value) => {
   if (!value || typeof value !== 'string') return '';
   return value
     .trim()
