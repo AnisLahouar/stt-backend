@@ -5,6 +5,7 @@ const { HttpStatus } = require("../../core/http_status.constants");
 const ResHandler = require("../../helpers/responseHandler.helper");
 const { createImageData, UploadFile } = require("../propertyImage/propertyImage.service");
 const { paginate } = require("../../helpers/paginate.helper");
+const { sanitizeSearchInput } = require("../../helpers/search.helper");
 
 
 exports.create = async (req, res) => {
@@ -12,9 +13,9 @@ exports.create = async (req, res) => {
 	const transaction1 = await sequelize.transaction()
 	let tempProperty;
 	try {
-		let { ownerId, title, description, address, pricePerDay, pricePerMonth, adminPricePerDay, adminPricePerMonth, status } = req.body;
+		let { ownerId, title, description, address, pricePerDay, pricePerMonth, status } = req.body;
 
-		if (!isPropertyDataValid()) {
+		if (!isPropertyDataValid({ ownerId, title, description, address, pricePerDay, pricePerMonth, status })) {
 			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
 			return resHandler.send(res)
 		}
@@ -25,7 +26,7 @@ exports.create = async (req, res) => {
 			return resHandler.send(res)
 		}
 
-		const property = await Property.create({ ownerId, title, description, address, pricePerDay, pricePerMonth, adminPricePerDay, adminPricePerMonth, status: 'pending' })
+		const property = await Property.create({ ownerId, title, description, address, pricePerDay, pricePerMonth, status: 'pending' })
 		tempProperty = property;
 
 		const filesUrl = []
@@ -73,6 +74,9 @@ exports.create = async (req, res) => {
 exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+
+		const search = sanitizeSearchInput(req.query.search);
+
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
@@ -80,8 +84,24 @@ exports.findAll = async (req, res) => {
 			req.query.direction
 		);
 
+		const whereClause = search
+			? {
+				[Op.or]: [
+					{ ownerId: { [Op.like]: `%${search}%` } },
+					{ title: { [Op.like]: `%${search}%` } },
+					{ description: { [Op.like]: `%${search}%` } },
+					{ address: { [Op.like]: `%${search}%` } },
+					{ pricePerDay: { [Op.like]: `%${search}%` } },
+					{ pricePerMonth: { [Op.like]: `%${search}%` } },
+					{ adminPricePerDay: { [Op.like]: `%${search}%` } },
+					{ adminPricePerMonth: { [Op.like]: `%${search}%` } },
+					{ status: { [Op.like]: `%${search}%` } },
+				]
+			}
+			: {};
 
-		const properties = await Property.findAndCountAll({ ...pagination });
+
+		const properties = await Property.findAndCountAll({ ...pagination, where: whereClause });
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.PROPERTY.SUCCESS.FOUND_ALL,
@@ -101,6 +121,8 @@ exports.findByOwner = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 
+		const search = sanitizeSearchInput(req.query.search);
+
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
@@ -108,11 +130,29 @@ exports.findByOwner = async (req, res) => {
 			req.query.direction
 		);
 
+		const whereClause = search
+			? {
+				[Op.or]: [
+					// { ownerId: { [Op.like]: `%${search}%` } },
+					{ title: { [Op.like]: `%${search}%` } },
+					{ description: { [Op.like]: `%${search}%` } },
+					{ address: { [Op.like]: `%${search}%` } },
+					{ pricePerDay: { [Op.like]: `%${search}%` } },
+					{ pricePerMonth: { [Op.like]: `%${search}%` } },
+					{ adminPricePerDay: { [Op.like]: `%${search}%` } },
+					{ adminPricePerMonth: { [Op.like]: `%${search}%` } },
+					{ status: { [Op.like]: `%${search}%` } },
+				]
+			}
+			: {};
+
+
 		const properties = await Property.findAndCountAll({
 			where: {
 				ownerId: req.params.id
 			},
-			...pagination
+			...pagination,
+			where: whereClause
 		});
 		resHandler.setSuccess(
 			HttpStatus.OK,
@@ -167,7 +207,7 @@ exports.update = async (req, res) => {
 
 		let { ownerId, title, description, address, pricePerDay, pricePerMonth, adminPricePerDay, adminPricePerMonth, status } = req.body;
 
-		if (!isPropertyDataValid()) {
+		if (!isPropertyDataValid({ ownerId, title, description, address, pricePerDay, pricePerMonth, adminPricePerDay, adminPricePerMonth, status })) {
 			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
 			return resHandler.send(res)
 		}
@@ -253,7 +293,7 @@ exports.delete = async (req, res) => {
 
 
 function isPropertyDataValid(inProperty) {
-	if (!inProperty.ownerId || !inProperty.title || !inProperty.description || !inProperty.address || !inProperty.pricePerDay || !inProperty.pricePerMonth || !inProperty.adminPricePerDay || !inProperty.adminPricePerMonth || !inProperty.status)
+	if (!inProperty.ownerId || !inProperty.title || !inProperty.description || !inProperty.address || !inProperty.pricePerDay || !inProperty.pricePerMonth)
 		return false
 	return true
 }

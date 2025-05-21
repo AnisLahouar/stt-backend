@@ -5,6 +5,7 @@ const ResHandler = require("../../helpers/responseHandler.helper");
 const { createDates, replaceDates, deleteDates } = require("./reservationData.service");
 const { propertyExists } = require("../property/property.service");
 const { paginate } = require("../../helpers/paginate.helper");
+const { sanitizeSearchInput } = require("../../helpers/search.helper");
 
 
 exports.create = async (req, res) => {
@@ -60,6 +61,9 @@ exports.create = async (req, res) => {
 exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+
+		const search = sanitizeSearchInput(req.query.search);
+
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
@@ -67,10 +71,24 @@ exports.findAll = async (req, res) => {
 			req.query.direction
 		);
 
+		const whereClause = search
+			? {
+				[Op.or]: [
+					{ propertyId: { [Op.like]: `%${search}%` } },
+					{ clientName: { [Op.like]: `%${search}%` } },
+					{ clientEmail: { [Op.like]: `%${search}%` } },
+					{ clientPhone: { [Op.like]: `%${search}%` } },
+					{ comment: { [Op.like]: `%${search}%` } },
+					{ status: { [Op.like]: `%${search}%` } },
+				]
+			}
+			: {};
+
+
 		const reservations = await Reservation.findAndCountAll({
 			include: {
 				model: ReservationDate,
-			}, ...pagination
+			}, ...pagination, where: whereClause
 		});
 		resHandler.setSuccess(
 			HttpStatus.OK,
@@ -122,12 +140,29 @@ exports.findOne = async (req, res) => {
 exports.findByPhone = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
+
+		const search = sanitizeSearchInput(req.query.search);
+
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
 			req.query.orderBy,
 			req.query.direction
 		);
+
+		const whereClause = search
+			? {
+				[Op.or]: [
+					{ propertyId: { [Op.like]: `%${search}%` } },
+					{ clientName: { [Op.like]: `%${search}%` } },
+					{ clientEmail: { [Op.like]: `%${search}%` } },
+					// { clientPhone: { [Op.like]: `%${search}%` } },
+					{ comment: { [Op.like]: `%${search}%` } },
+					{ status: { [Op.like]: `%${search}%` } },
+				]
+			}
+			: {};
+
 
 		const reservations = await Reservation.findAndCountAll({
 			where: {
@@ -136,7 +171,7 @@ exports.findByPhone = async (req, res) => {
 			include: {
 				model: ReservationDate,
 			},
-			...pagination
+			...pagination, where: whereClause
 		});
 
 		if (reservations !== null && reservations !== undefined
@@ -165,12 +200,27 @@ exports.findByProperty = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 
+		const search = sanitizeSearchInput(req.query.search);
+
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
 			req.query.orderBy,
 			req.query.direction
 		);
+
+		const whereClause = search
+			? {
+				[Op.or]: [
+					// { propertyId: { [Op.like]: `%${search}%` } },
+					{ clientName: { [Op.like]: `%${search}%` } },
+					{ clientEmail: { [Op.like]: `%${search}%` } },
+					{ clientPhone: { [Op.like]: `%${search}%` } },
+					{ comment: { [Op.like]: `%${search}%` } },
+					{ status: { [Op.like]: `%${search}%` } },
+				]
+			}
+			: {};
 
 		const reservations = await Reservation.findAndCountAll({
 			where: {
@@ -179,7 +229,7 @@ exports.findByProperty = async (req, res) => {
 			include: {
 				model: ReservationDate,
 			},
-			...pagination
+			...pagination, where: whereClause
 		});
 
 		if (reservations !== null && reservations !== undefined
