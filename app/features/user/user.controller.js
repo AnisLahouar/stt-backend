@@ -97,10 +97,10 @@ exports.findOne = async (req, res) => {
 				HttpStatus.NOT_FOUND,
 				RES_MESSAGES.USER.ERROR.NOT_FOUND
 			)
-			return resHandler(res)
+			return resHandler.send(res)
 		}
 
-		if (req.user.role !== 'admin') {
+		if (!req.user || req.user.role !== 'admin') {
 			user.password = '';
 		}
 
@@ -132,15 +132,15 @@ exports.update = async (req, res) => {
 			return resHandler.send(res)
 		}
 
-		if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
-			resHandler.setError(
-				HttpStatus.BAD_REQUEST,
-				RES_MESSAGES.MISSING_PARAMETERS,
-			);
-			return resHandler.send(res)
-		}
+		// if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
+		// 	resHandler.setError(
+		// 		HttpStatus.BAD_REQUEST,
+		// 		RES_MESSAGES.MISSING_PARAMETERS,
+		// 	);
+		// 	return resHandler.send(res)
+		// }
 
-		let user = await User.findByPk(req.params.id)
+		const user = await User.findByPk(req.params.id)
 		if (!user) {
 			resHandler.setError(
 				HttpStatus.NOT_FOUND,
@@ -149,11 +149,21 @@ exports.update = async (req, res) => {
 			return resHandler(res)
 		}
 
-		user = await user.update({ email, name, password, phone, address, role, status });
+		const updateData = {
+			email: email ? email : user.email,
+			name: name ? name : user.name,
+			password: password ? password : user.password,
+			phone: phone ? phone : user.phone,
+			address: address ? address : user.address,
+			role: role ? role : user.role,
+			status: status ? status : user.status
+		}
+
+		let updatedUser = await user.update(updateData);
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.USER.SUCCESS.CREATED,
-			user
+			updatedUser
 		);
 		return resHandler.send(res)
 
