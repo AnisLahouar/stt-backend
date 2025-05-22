@@ -41,3 +41,5 @@
 
 Analytics
 
+Number of Pending Reservation Requests
+Number of Pending Property Creations

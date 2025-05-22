@@ -100,7 +100,6 @@ exports.findAll = async (req, res) => {
 			}
 			: {};
 
-
 		const properties = await Property.findAndCountAll({ ...pagination, where: whereClause });
 		resHandler.setSuccess(
 			HttpStatus.OK,
@@ -145,7 +144,6 @@ exports.findByOwner = async (req, res) => {
 				]
 			}
 			: {};
-
 
 		const properties = await Property.findAndCountAll({
 			where: {
@@ -205,26 +203,59 @@ exports.update = async (req, res) => {
 			return resHandler.send(res)
 		}
 
-		let { ownerId, title, description, address, pricePerDay, pricePerMonth, adminPricePerDay, adminPricePerMonth, status } = req.body;
+		let { ownerId, title, description, address, pricePerDay, pricePerMonth } = req.body;
 
-		if (!isPropertyDataValid({ ownerId, title, description, address, pricePerDay, pricePerMonth, adminPricePerDay, adminPricePerMonth, status })) {
+		if (!isPropertyDataValid({ ownerId, title, description, address, pricePerDay, pricePerMonth })) {
 			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
 			return resHandler.send(res)
 		}
 
-		const user = await User.findByPk(ownerId);
-
-		if (!user) {
-			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.USER_NOT_FOUND);
-			return resHandler.send(res)
-		}
-
-		property.ownerId = ownerId;
+		property.ownerId = req.user.id;
 		property.title = title;
 		property.description = description;
 		property.address = address;
 		property.pricePerDay = pricePerDay;
 		property.pricePerMonth = pricePerMonth;
+
+		await property.update();
+		resHandler.setSuccess(
+			HttpStatus.OK,
+			RES_MESSAGES.PROPERTY.SUCCESS.UPDATED,
+			property
+		);
+		return resHandler.send(res)
+	}
+	catch (error) {
+		resHandler.setError(
+			HttpStatus.INTERNAL_SERVER_ERROR,
+			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+		);
+		return resHandler.send(res)
+	}
+};
+
+exports.confirm = async (req, res) => {
+	const resHandler = new ResHandler();
+	try {
+		let { adminPricePerDay, adminPricePerMonth, status } = req.body;
+
+		if (status !== "accepted" || status != "hidden") {
+			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.INVALID_PARAMETERS);
+			return resHandler.send(res)
+		}
+
+		if (!isPropertyDataAdminValid({ adminPricePerDay, adminPricePerMonth, status })) {
+			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
+			return resHandler.send(res)
+		}
+
+		const property = await Property.findByPk(req.params.id);
+
+		if (!property) {
+			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.NOT_FOUND);
+			return resHandler.send(res)
+		}
+
 		property.adminPricePerDay = adminPricePerDay;
 		property.adminPricePerMonth = adminPricePerMonth;
 		property.status = status;
@@ -293,7 +324,16 @@ exports.delete = async (req, res) => {
 
 
 function isPropertyDataValid(inProperty) {
-	if (!inProperty.ownerId || !inProperty.title || !inProperty.description || !inProperty.address || !inProperty.pricePerDay || !inProperty.pricePerMonth)
+	if (!inProperty.ownerId ||
+		!inProperty.title || !inProperty.description ||
+		!inProperty.address ||
+		!inProperty.pricePerDay || !inProperty.pricePerMonth)
+		return false
+	return true
+}
+
+function isPropertyDataAdminValid(inProperty) {
+	if (!inProperty.adminPricePerDay || !inProperty.adminPricePerMonth || !inProperty.status)
 		return false
 	return true
 }
