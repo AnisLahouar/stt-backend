@@ -38,6 +38,9 @@ exports.User = sequelize.define(
     status: {
       type: DataTypes.ENUM("active", "inactive"),
       defaultValue: "active"
+    },
+    deletedAt: {
+      type: Sequelize.DATE,
     }
   },
   {
