@@ -6,7 +6,10 @@ const { logErrorResponse } = require("../helpers/log.helper");
 const ResHandler = require("../helpers/responseHandler.helper");
 
 exports.userIdMiddleware = async (req, res, next) => {
-  const token = req.headers["authorization"];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  // const token = req.headers["authorization"];
+
   const resHandler = new ResHandler();
   if (!token) {
     resHandler.setError(
@@ -32,7 +35,10 @@ exports.userIdMiddleware = async (req, res, next) => {
 };
 
 exports.userMiddleware = async (req, res, next) => {
-  const token = req.headers["authorization"];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  // const token = req.headers["authorization"];
+
   const resHandler = new ResHandler();
   if (!token) {
     resHandler.setError(
