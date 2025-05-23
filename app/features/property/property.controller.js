@@ -212,23 +212,23 @@ exports.update = async (req, res) => {
 
 		let { ownerId, title, description, address, pricePerDay, pricePerMonth } = req.body;
 
-		if (!isPropertyDataValid({ ownerId, title, description, address, pricePerDay, pricePerMonth })) {
-			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
-			return resHandler.send(res)
+		// if (!isPropertyDataValid({ ownerId, title, description, address, pricePerDay, pricePerMonth })) {
+		// 	resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
+		// 	return resHandler.send(res)
+		// }
+
+		const updateData = {
+			title: title ? title : property.title,
+			description: description ? description : property.description,
+			address: address ? address : property.address,
+			pricePerDay: pricePerDay ? pricePerDay : property.pricePerDay,
+			pricePerMonth: pricePerMonth ? pricePerMonth : property.pricePerMonth,
 		}
-
-		property.ownerId = req.user.id;
-		property.title = title;
-		property.description = description;
-		property.address = address;
-		property.pricePerDay = pricePerDay;
-		property.pricePerMonth = pricePerMonth;
-
-		await property.update();
+		const updatedData = await property.update(updateData);
 		resHandler.setSuccess(
 			HttpStatus.OK,
 			RES_MESSAGES.PROPERTY.SUCCESS.UPDATED,
-			property
+			updatedData
 		);
 		return resHandler.send(res)
 	}
