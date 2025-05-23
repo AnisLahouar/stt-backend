@@ -1,11 +1,12 @@
 const { RES_MESSAGES } = require("../../core/variables.constants");
-const { Property, User, sequelize } = require('../../database')
+const { Property, User, sequelize, PropertyImage } = require('../../database')
 const { HttpStatus } = require("../../core/http_status.constants");
 
 const ResHandler = require("../../helpers/responseHandler.helper");
 const { createImageData, UploadFile } = require("../propertyImage/propertyImage.service");
 const { paginate } = require("../../helpers/paginate.helper");
 const { sanitizeSearchInput } = require("../../helpers/search.helper");
+const { includes } = require("lodash");
 
 
 exports.create = async (req, res) => {
@@ -167,10 +168,16 @@ exports.findByOwner = async (req, res) => {
 	}
 };
 
+//todo: add property image
 exports.findOne = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
-		const property = await Property.findByPk(req.params.id);
+		const property = await Property.findByPk(req.params.id,
+			{
+				include: {
+					model: PropertyImage,
+				}
+			});
 
 		if (property !== null && property !== undefined) {
 			resHandler.setSuccess(

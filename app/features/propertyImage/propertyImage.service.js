@@ -28,6 +28,7 @@ exports.UploadFile = async (inImage, inPath, inName) => {
     const compressedImage = await compressImageBuffer(inImage.buffer);
     const imagePath = path.join(__dirname, `../../uploads/${inPath}`, `${inName}.jpg`);
     await saveImageToDisk(compressedImage, imagePath);
+    return `uploads/${inPath}/${inName}.jpg`;
   }
   catch (e) {
     throw new Error("Image Save to Disk Failed: " + e.message);
