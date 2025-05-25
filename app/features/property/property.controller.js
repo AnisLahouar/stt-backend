@@ -14,9 +14,9 @@ exports.create = async (req, res) => {
 	const transaction1 = await sequelize.transaction()
 	let tempProperty;
 	try {
-		let { ownerId, title, description, address, pricePerDay, pricePerMonth, status } = req.body;
+		let { ownerId, title, description, category, governorate, address, pricePerDay, pricePerMonth } = req.body;
 
-		if (!isPropertyDataValid({ ownerId, title, description, address, pricePerDay, pricePerMonth, status })) {
+		if (!isPropertyDataValid({ ownerId, title, description, category, governorate, address, pricePerDay, pricePerMonth })) {
 			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
 			return resHandler.send(res)
 		}
@@ -27,7 +27,7 @@ exports.create = async (req, res) => {
 			return resHandler.send(res)
 		}
 
-		const property = await Property.create({ ownerId, title, description, address, pricePerDay, pricePerMonth, status: 'pending' })
+		const property = await Property.create({ ownerId, title, description, category, governorate, address, pricePerDay, pricePerMonth })
 		tempProperty = property;
 
 		const filesUrl = []
@@ -91,6 +91,10 @@ exports.findAll = async (req, res) => {
 					{ ownerId: { [Op.like]: `%${search}%` } },
 					{ title: { [Op.like]: `%${search}%` } },
 					{ description: { [Op.like]: `%${search}%` } },
+					{ category: { [Op.like]: `%${search}%` } },
+					{ bedrooms: { [Op.like]: `%${search}%` } },
+					{ bathrooms: { [Op.like]: `%${search}%` } },
+					{ governorate: { [Op.like]: `%${search}%` } },
 					{ address: { [Op.like]: `%${search}%` } },
 					{ pricePerDay: { [Op.like]: `%${search}%` } },
 					{ pricePerMonth: { [Op.like]: `%${search}%` } },
@@ -136,6 +140,10 @@ exports.findByOwner = async (req, res) => {
 					// { ownerId: { [Op.like]: `%${search}%` } },
 					{ title: { [Op.like]: `%${search}%` } },
 					{ description: { [Op.like]: `%${search}%` } },
+					{ category: { [Op.like]: `%${search}%` } },
+					{ bedrooms: { [Op.like]: `%${search}%` } },
+					{ bathrooms: { [Op.like]: `%${search}%` } },
+					{ governorate: { [Op.like]: `%${search}%` } },
 					{ address: { [Op.like]: `%${search}%` } },
 					{ pricePerDay: { [Op.like]: `%${search}%` } },
 					{ pricePerMonth: { [Op.like]: `%${search}%` } },
@@ -210,7 +218,7 @@ exports.update = async (req, res) => {
 			return resHandler.send(res)
 		}
 
-		let { ownerId, title, description, address, pricePerDay, pricePerMonth } = req.body;
+		let { ownerId, title, description, category, bedrooms, bathrooms, governorate, address, pricePerDay, pricePerMonth } = req.body;
 
 		// if (!isPropertyDataValid({ ownerId, title, description, address, pricePerDay, pricePerMonth })) {
 		// 	resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
@@ -220,9 +228,13 @@ exports.update = async (req, res) => {
 		const updateData = {
 			title: title ? title : property.title,
 			description: description ? description : property.description,
+			category: category ? category : property.category,
+			governorate: governorate ? governorate : property.governorate,
 			address: address ? address : property.address,
 			pricePerDay: pricePerDay ? pricePerDay : property.pricePerDay,
 			pricePerMonth: pricePerMonth ? pricePerMonth : property.pricePerMonth,
+			bedrooms: bedrooms ? bedrooms : property.bedrooms,
+			bathrooms: bathrooms ? bathrooms : property.bathrooms,
 		}
 		const updatedData = await property.update(updateData);
 		resHandler.setSuccess(
@@ -311,7 +323,7 @@ exports.delete = async (req, res) => {
 
 		user.propertyCount--;
 
-		await user.update();
+		await user.update({ propertyCount: user.propertyCount });
 
 		resHandler.setSuccess(
 			HttpStatus.OK,
@@ -332,8 +344,8 @@ exports.delete = async (req, res) => {
 
 function isPropertyDataValid(inProperty) {
 	if (!inProperty.ownerId ||
-		!inProperty.title || !inProperty.description ||
-		!inProperty.address ||
+		!inProperty.title || !inProperty.description || !inProperty.category ||
+		!inProperty.governorate || !inProperty.address || !inProperty.description ||
 		!inProperty.pricePerDay || !inProperty.pricePerMonth)
 		return false
 	return true

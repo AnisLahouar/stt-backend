@@ -19,6 +19,22 @@ exports.Property = sequelize.define("Property", {
     type: DataTypes.TEXT,
     defaultValue: ""
   },
+  category: {
+    type: DataTypes.STRING,
+    defaultValue: ""
+  },
+  bedrooms: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1
+  },
+  bathrooms: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1
+  },
+  governorate: {
+    type: DataTypes.STRING,
+    defaultValue: ""
+  },
   address: {
     type: DataTypes.STRING,
     defaultValue: ""
