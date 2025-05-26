@@ -12,10 +12,10 @@ exports.create = async (req, res) => {
 	const resHandler = new ResHandler();
 	const transaction = await sequelize.transaction()
 	try {
-		let { propertyId, clientName, clientEmail, clientPhone, comment, status } = req.body.reservation
+		let { propertyId, clientName, clientEmail, clientPhone, comment } = req.body
 		const { dates } = req.body
 
-		if (!isReservationBodyValid({ propertyId, clientName, clientEmail, clientPhone, comment, status })
+		if (!isReservationBodyValid({ propertyId, clientName, clientEmail, clientPhone, comment })
 			|| !isDatesBodyValid(dates)) {
 			resHandler.setError(
 				HttpStatus.BAD_REQUEST,
@@ -34,8 +34,7 @@ exports.create = async (req, res) => {
 			return resHandler.send(res)
 		}
 
-		status = 'pending'
-		const createdReservation = await Reservation.create({ propertyId, clientName, clientEmail, clientPhone, comment, status }, transaction)
+		const createdReservation = await Reservation.create({ propertyId, clientName, clientEmail, clientPhone, comment, status: 'pending' }, transaction)
 		const createdDates = await createDates(createdReservation.id, dates);
 
 		const result = { ...createdReservation.toJSON(), createdDates }
@@ -49,7 +48,8 @@ exports.create = async (req, res) => {
 		return resHandler.send(res)
 	}
 	catch (error) {
-		await transaction.rollback
+		console.log(error);
+		await transaction.rollback()
 		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
@@ -174,17 +174,11 @@ exports.findByPhone = async (req, res) => {
 			...pagination, where: whereClause
 		});
 
-		if (reservations !== null && reservations !== undefined
-			&& reservations.length > 0) {
-			resHandler.setSuccess(
-				HttpStatus.OK,
-				RES_MESSAGES.RESERVATION.SUCCESS.FOUND,
-				reservations
-			);
-			return resHandler.send(res)
-		}
-
-		resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.RESERVATION.ERROR.PHONE);
+		resHandler.setSuccess(
+			HttpStatus.OK,
+			RES_MESSAGES.RESERVATION.SUCCESS.FOUND,
+			reservations
+		);
 		return resHandler.send(res)
 	}
 	catch (error) {
@@ -232,17 +226,11 @@ exports.findByProperty = async (req, res) => {
 			...pagination, where: whereClause
 		});
 
-		if (reservations !== null && reservations !== undefined
-			&& reservations.length > 0) {
-			resHandler.setSuccess(
-				HttpStatus.OK,
-				RES_MESSAGES.RESERVATION.SUCCESS.FOUND,
-				reservations
-			);
-			return resHandler.send(res)
-		}
-
-		resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.RESERVATION.ERROR.PROPERTY);
+		resHandler.setSuccess(
+			HttpStatus.OK,
+			RES_MESSAGES.RESERVATION.SUCCESS.FOUND,
+			reservations
+		);
 		return resHandler.send(res)
 	}
 	catch (error) {
@@ -339,8 +327,9 @@ exports.delete = async (req, res) => {
 
 
 function isReservationBodyValid(inReservation) {
-
-	if (!propertyId || !clientName || !clientEmail || !clientPhone || !comment) {
+	if (!inReservation.propertyId || !inReservation.clientName ||
+		!inReservation.clientEmail || !inReservation.clientPhone ||
+		!inReservation.comment) {
 		return false
 	}
 	return true

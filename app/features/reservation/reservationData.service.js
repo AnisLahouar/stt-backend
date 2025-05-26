@@ -4,13 +4,15 @@ const { toMySQLDate, formatMySQLDate } = require("../../helpers/date.helper")
 exports.createDates = async (reservationId, inDates) => {
 	try {
 
-		const dates = await ReservationDate.bulkCreate(convertToSQLDate(reservationId, inDates))
-
+		const input = convertToSQLDate(reservationId, inDates)
+		console.log(input);
+		const dates = await ReservationDate.bulkCreate(input)
+		console.log(dates);
 		return revertFromSQLDate(dates)
 
 	}
 	catch (error) {
-		throw new Error("Create Dates Failed")
+		throw new Error("Create Dates Failed"+error.message)
 	}
 }
 
@@ -28,6 +30,7 @@ exports.replaceDates = async (inReservationId, inDates) => {
 		return revertFromSQLDate(dates)
 	}
 	catch (error) {
+
 		throw new Error("Update Dates Failed")
 	}
 }
@@ -51,8 +54,9 @@ exports.deleteDates = async (inReservationId) => {
 function revertFromSQLDate(inDates) {
 	let result = [];
 	for (let index = 0; index < inDates.length; index++) {
+		console.log(inDates[index].date);
 		result.push({
-			date: formatMySQLDate(inDates[index].date)
+			date: formatMySQLDate(inDates[index].date, "YYYY-MM-DD")
 		})
 	}
 	return result;
@@ -63,7 +67,7 @@ function convertToSQLDate(inReservationId, inDates) {
 	for (let index = 0; index < inDates.length; index++) {
 		result.push({
 			reservationId: inReservationId,
-			date: toMySQLDate(inDates[index])
+			date: toMySQLDate(inDates[index].date)
 		})
 	}
 	return result;
