@@ -7,6 +7,7 @@ const { createImageData, UploadFile } = require("../propertyImage/propertyImage.
 const { paginate } = require("../../helpers/paginate.helper");
 const { sanitizeSearchInput } = require("../../helpers/search.helper");
 const { includes } = require("lodash");
+const { Op } = require("sequelize");
 
 
 exports.create = async (req, res) => {
@@ -76,8 +77,6 @@ exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 
-		const search = sanitizeSearchInput(req.query.search);
-
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
@@ -85,23 +84,20 @@ exports.findAll = async (req, res) => {
 			req.query.direction
 		);
 
-		const whereClause = search
+		const whereClause = req.query
 			? {
-				[Op.or]: [
-					{ ownerId: { [Op.like]: `%${search}%` } },
-					{ title: { [Op.like]: `%${search}%` } },
-					{ description: { [Op.like]: `%${search}%` } },
-					{ category: { [Op.like]: `%${search}%` } },
-					{ bedrooms: { [Op.like]: `%${search}%` } },
-					{ bathrooms: { [Op.like]: `%${search}%` } },
-					{ governorate: { [Op.like]: `%${search}%` } },
-					{ address: { [Op.like]: `%${search}%` } },
-					{ pricePerDay: { [Op.like]: `%${search}%` } },
-					{ pricePerMonth: { [Op.like]: `%${search}%` } },
-					{ adminPricePerDay: { [Op.like]: `%${search}%` } },
-					{ adminPricePerMonth: { [Op.like]: `%${search}%` } },
-					{ status: { [Op.like]: `%${search}%` } },
-				]
+				...(req.query.ownerId && { ownerId: { [Op.like]: `%${req.query.ownerId}%` } }),
+				...(req.query.title && { title: { [Op.like]: `%${req.query.title}%` } }),
+				...(req.query.category && { category: { [Op.like]: `%${req.query.category}%` } }),
+				...(req.query.bedrooms && { bedrooms: { [Op.like]: `%${req.query.bedrooms}%` } }),
+				...(req.query.bathrooms && { bathrooms: { [Op.like]: `%${req.query.bathrooms}%` } }),
+				...(req.query.governorate && { governorate: { [Op.like]: `%${req.query.governorate}%` } }),
+				...(req.query.address && { address: { [Op.like]: `%${req.query.address}%` } }),
+				...(req.query.pricePerDay && { pricePerDay: { [Op.like]: `%${req.query.pricePerDay}%` } }),
+				...(req.query.pricePerMonth && { pricePerMonth: { [Op.like]: `%${req.query.pricePerMonth}%` } }),
+				...(req.query.adminPricePerDay && { adminPricePerDay: { [Op.like]: `%${req.query.adminPricePerDay}%` } }),
+				...(req.query.adminPricePerMonth && { adminPricePerMonth: { [Op.like]: `%${req.query.adminPricePerMonth}%` } }),
+				...(req.query.status && { status: { [Op.like]: `%${req.query.status}%` } }),
 			}
 			: {};
 
@@ -125,8 +121,6 @@ exports.findByOwner = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 
-		const search = sanitizeSearchInput(req.query.search);
-
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
@@ -134,23 +128,20 @@ exports.findByOwner = async (req, res) => {
 			req.query.direction
 		);
 
-		const whereClause = search
+		const whereClause = req.query
 			? {
-				[Op.or]: [
-					// { ownerId: { [Op.like]: `%${search}%` } },
-					{ title: { [Op.like]: `%${search}%` } },
-					{ description: { [Op.like]: `%${search}%` } },
-					{ category: { [Op.like]: `%${search}%` } },
-					{ bedrooms: { [Op.like]: `%${search}%` } },
-					{ bathrooms: { [Op.like]: `%${search}%` } },
-					{ governorate: { [Op.like]: `%${search}%` } },
-					{ address: { [Op.like]: `%${search}%` } },
-					{ pricePerDay: { [Op.like]: `%${search}%` } },
-					{ pricePerMonth: { [Op.like]: `%${search}%` } },
-					{ adminPricePerDay: { [Op.like]: `%${search}%` } },
-					{ adminPricePerMonth: { [Op.like]: `%${search}%` } },
-					{ status: { [Op.like]: `%${search}%` } },
-				]
+				// ...(req.query.ownerId && { ownerId: { [Op.like]: `%${req.query.ownerId}%` } }),
+				...(req.query.title && { title: { [Op.like]: `%${req.query.title}%` } }),
+				...(req.query.category && { category: { [Op.like]: `%${req.query.category}%` } }),
+				...(req.query.bedrooms && { bedrooms: { [Op.like]: `%${req.query.bedrooms}%` } }),
+				...(req.query.bathrooms && { bathrooms: { [Op.like]: `%${req.query.bathrooms}%` } }),
+				...(req.query.governorate && { governorate: { [Op.like]: `%${req.query.governorate}%` } }),
+				...(req.query.address && { address: { [Op.like]: `%${req.query.address}%` } }),
+				...(req.query.pricePerDay && { pricePerDay: { [Op.like]: `%${req.query.pricePerDay}%` } }),
+				...(req.query.pricePerMonth && { pricePerMonth: { [Op.like]: `%${req.query.pricePerMonth}%` } }),
+				...(req.query.adminPricePerDay && { adminPricePerDay: { [Op.like]: `%${req.query.adminPricePerDay}%` } }),
+				...(req.query.adminPricePerMonth && { adminPricePerMonth: { [Op.like]: `%${req.query.adminPricePerMonth}%` } }),
+				...(req.query.status && { status: { [Op.like]: `%${req.query.status}%` } }),
 			}
 			: {};
 

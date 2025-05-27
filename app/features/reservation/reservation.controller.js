@@ -6,6 +6,7 @@ const { createDates, replaceDates, deleteDates } = require("./reservationData.se
 const { propertyExists } = require("../property/property.service");
 const { paginate } = require("../../helpers/paginate.helper");
 const { sanitizeSearchInput } = require("../../helpers/search.helper");
+const { Op } = require("sequelize");
 
 
 exports.create = async (req, res) => {
@@ -62,8 +63,6 @@ exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 
-		const search = sanitizeSearchInput(req.query.search);
-
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
@@ -71,16 +70,14 @@ exports.findAll = async (req, res) => {
 			req.query.direction
 		);
 
-		const whereClause = search
+		const whereClause = req.query
 			? {
-				[Op.or]: [
-					{ propertyId: { [Op.like]: `%${search}%` } },
-					{ clientName: { [Op.like]: `%${search}%` } },
-					{ clientEmail: { [Op.like]: `%${search}%` } },
-					{ clientPhone: { [Op.like]: `%${search}%` } },
-					{ comment: { [Op.like]: `%${search}%` } },
-					{ status: { [Op.like]: `%${search}%` } },
-				]
+				...(req.query.propertyId && { propertyId: { [Op.like]: `%${req.query.propertyId}%` } }),
+				...(req.query.clientName && { clientName: { [Op.like]: `%${req.query.clientName}%` } }),
+				...(req.query.clientEmail && { clientEmail: { [Op.like]: `%${req.query.clientEmail}%` } }),
+				...(req.query.clientPhone && { clientPhone: { [Op.like]: `%${req.query.clientPhone}%` } }),
+				...(req.query.comment && { comment: { [Op.like]: `%${req.query.comment}%` } }),
+				...(req.query.status && { status: { [Op.like]: `%${req.query.status}%` } }),
 			}
 			: {};
 
@@ -141,8 +138,6 @@ exports.findByPhone = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 
-		const search = sanitizeSearchInput(req.query.search);
-
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
@@ -150,16 +145,14 @@ exports.findByPhone = async (req, res) => {
 			req.query.direction
 		);
 
-		const whereClause = search
+		const whereClause = req.query
 			? {
-				[Op.or]: [
-					{ propertyId: { [Op.like]: `%${search}%` } },
-					{ clientName: { [Op.like]: `%${search}%` } },
-					{ clientEmail: { [Op.like]: `%${search}%` } },
-					// { clientPhone: { [Op.like]: `%${search}%` } },
-					{ comment: { [Op.like]: `%${search}%` } },
-					{ status: { [Op.like]: `%${search}%` } },
-				]
+				...(req.query.propertyId && { propertyId: { [Op.like]: `%${req.query.propertyId}%` } }),
+				...(req.query.clientName && { clientName: { [Op.like]: `%${req.query.clientName}%` } }),
+				...(req.query.clientEmail && { clientEmail: { [Op.like]: `%${req.query.clientEmail}%` } }),
+				// ...(req.query.clientPhone && { clientPhone: { [Op.like]: `%${req.query.clientPhone}%` } }),
+				...(req.query.comment && { comment: { [Op.like]: `%${req.query.comment}%` } }),
+				...(req.query.status && { status: { [Op.like]: `%${req.query.status}%` } }),
 			}
 			: {};
 
@@ -194,8 +187,6 @@ exports.findByProperty = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
 
-		const search = sanitizeSearchInput(req.query.search);
-
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
 			req.query.pageSize || 10,
@@ -203,16 +194,14 @@ exports.findByProperty = async (req, res) => {
 			req.query.direction
 		);
 
-		const whereClause = search
+		const whereClause = req.query
 			? {
-				[Op.or]: [
-					// { propertyId: { [Op.like]: `%${search}%` } },
-					{ clientName: { [Op.like]: `%${search}%` } },
-					{ clientEmail: { [Op.like]: `%${search}%` } },
-					{ clientPhone: { [Op.like]: `%${search}%` } },
-					{ comment: { [Op.like]: `%${search}%` } },
-					{ status: { [Op.like]: `%${search}%` } },
-				]
+				// ...(req.query.propertyId && { propertyId: { [Op.like]: `%${req.query.propertyId}%` } }),
+				...(req.query.clientName && { clientName: { [Op.like]: `%${req.query.clientName}%` } }),
+				...(req.query.clientEmail && { clientEmail: { [Op.like]: `%${req.query.clientEmail}%` } }),
+				...(req.query.clientPhone && { clientPhone: { [Op.like]: `%${req.query.clientPhone}%` } }),
+				...(req.query.comment && { comment: { [Op.like]: `%${req.query.comment}%` } }),
+				...(req.query.status && { status: { [Op.like]: `%${req.query.status}%` } }),
 			}
 			: {};
 

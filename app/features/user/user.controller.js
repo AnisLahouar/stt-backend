@@ -45,7 +45,6 @@ exports.create = async (req, res) => {
 exports.findAll = async (req, res) => {
 	const resHandler = new ResHandler();
 	try {
-		const search = sanitizeSearchInput(req.query.search);
 
 		const pagination = paginate(
 			req.query.page > 1 ? req.query.page : 1,
@@ -54,16 +53,14 @@ exports.findAll = async (req, res) => {
 			req.query.direction
 		);
 
-		const whereClause = search
+		const whereClause = req.query
 			? {
-				[Op.or]: [
-					{ email: { [Op.like]: `%${search}%` } },
-					{ name: { [Op.like]: `%${search}%` } },
-					{ phone: { [Op.like]: `%${search}%` } },
-					{ address: { [Op.like]: `%${search}%` } },
-					{ role: { [Op.like]: `%${search}%` } },
-					{ status: { [Op.like]: `%${search}%` } },
-				]
+				...(req.query.email && { email: { [Op.like]: `%${req.query.email}%` } }),
+				...(req.query.name && { name: { [Op.like]: `%${req.query.name}%` } }),
+				...(req.query.phone && { phone: { [Op.like]: `%${req.query.phone}%` } }),
+				...(req.query.address && { address: { [Op.like]: `%${req.query.address}%` } }),
+				...(req.query.role && { role: { [Op.like]: `%${req.query.role}%` } }),
+				...(req.query.status && { status: { [Op.like]: `%${req.query.status}%` } }),
 			}
 			: {};
 
