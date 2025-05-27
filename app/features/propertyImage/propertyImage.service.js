@@ -13,7 +13,7 @@ exports.createImageData = async (property, fileName, inTransaction) => {
     })
 
     return {
-      staus: true,
+      status: true,
       result: imageData,
       message: RES_MESSAGES.PROPERTY_IMAGE.SUCCESS.CREATED
     }
