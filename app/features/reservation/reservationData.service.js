@@ -1,18 +1,23 @@
 const { ReservationDate } = require("../../database")
 const { toMySQLDate, formatMySQLDate } = require("../../helpers/date.helper")
 
-exports.createDates = async (reservationId, inDates) => {
+exports.createDates = async (reservationId, inDates, transaction) => {
 	try {
 
 		const input = convertToSQLDate(reservationId, inDates)
-		console.log(input);
-		const dates = await ReservationDate.bulkCreate(input)
-		console.log(dates);
+		// console.log(input);
+		const dates = await ReservationDate.bulkCreate(input
+			, {
+				// transaction: transaction,
+				raw: true
+			}
+		)
+		// console.log(dates);
 		return revertFromSQLDate(dates)
 
 	}
 	catch (error) {
-		throw new Error("Create Dates Failed"+error.message)
+		throw new Error("Create Dates Failed" + error.message)
 	}
 }
 

@@ -12,6 +12,7 @@ const { Op } = require("sequelize");
 exports.create = async (req, res) => {
 	const resHandler = new ResHandler();
 	const transaction = await sequelize.transaction()
+	let createdReservation;
 	try {
 		let { propertyId, clientName, clientEmail, clientPhone, comment } = req.body
 		const { dates } = req.body
@@ -35,10 +36,20 @@ exports.create = async (req, res) => {
 			return resHandler.send(res)
 		}
 
-		const createdReservation = await Reservation.create({ propertyId, clientName, clientEmail, clientPhone, comment, status: 'pending' }, transaction)
-		const createdDates = await createDates(createdReservation.id, dates);
+		createdReservation = await Reservation.create({ propertyId, clientName, clientEmail, clientPhone, comment, status: 'pending' }
+			, {
+				// transaction: transaction,
+				raw: true
+			}
+		)
+
+		console.log("Created Reservation Id: " + createdReservation.id);
+
+		const createdDates = await createDates(createdReservation.id, dates, transaction);
 
 		const result = { ...createdReservation.toJSON(), createdDates }
+
+		console.log("READY TO COMMIT");
 
 		await transaction.commit();
 		resHandler.setSuccess(
@@ -49,7 +60,7 @@ exports.create = async (req, res) => {
 		return resHandler.send(res)
 	}
 	catch (error) {
-		console.log(error);
+		await createdReservation.destroy()
 		await transaction.rollback()
 		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
