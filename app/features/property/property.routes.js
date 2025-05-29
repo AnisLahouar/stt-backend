@@ -3,7 +3,7 @@ const router = express.Router();
 const controller = require('./property.controller');
 const { createMulterMemoryMiddleware } = require("../../middlewares/multer.middleware");
 const { isAdminMiddleware } = require("../../middlewares/role.middleware");
-const { userMiddleware } = require("../../middlewares/user.middleware");
+const { userMiddleware, userIdMiddleware } = require("../../middlewares/user.middleware");
 
 const multerMiddleware = createMulterMemoryMiddleware({
     fieldName: "images",
@@ -15,8 +15,9 @@ router.post('/', [userMiddleware, multerMiddleware], controller.create)
 router.get('/', controller.findAll)
 router.get('/owner/:id', controller.findByOwner)
 router.get('/:id', controller.findOne)
-router.put('/:id', userMiddleware, controller.update)
-router.put('/confirm/:id', isAdminMiddleware ,controller.confirm)
+router.put('/:id', [userMiddleware], controller.update)
+router.put('/confirm/:id', [isAdminMiddleware] ,controller.confirm)
 router.delete('/:id', controller.delete)
+router.delete('/:id/image/:imageId', [userIdMiddleware],controller.deleteImage)
 
 module.exports = router
