@@ -11,7 +11,7 @@ const multerMiddleware = createMulterMemoryMiddleware({
     maxFileSizeMB: 5
 })
 
-router.post('/', [multerMiddleware], controller.create)
+router.post('/', [userMiddleware, multerMiddleware], controller.create)
 router.get('/', controller.findAll)
 router.get('/owner/:id', controller.findByOwner)
 router.get('/:id', controller.findOne)

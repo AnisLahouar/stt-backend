@@ -15,20 +15,14 @@ exports.create = async (req, res) => {
 	const transaction1 = await sequelize.transaction()
 	let tempProperty;
 	try {
-		let { ownerId, title, description, category, governorate, address, pricePerDay, pricePerMonth } = req.body;
+		let { title, description, category, governorate, address, pricePerDay, pricePerMonth } = req.body;
 
-		if (!isPropertyDataValid({ ownerId, title, description, category, governorate, address, pricePerDay, pricePerMonth })) {
+		if (!isPropertyDataValid({ title, description, category, governorate, address, pricePerDay, pricePerMonth })) {
 			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
 			return resHandler.send(res)
 		}
 
-		const user = await User.findByPk(ownerId);
-		if (!user) {
-			resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.PROPERTY.ERROR.USER_NOT_FOUND);
-			return resHandler.send(res)
-		}
-
-		const property = await Property.create({ ownerId, title, description, category, governorate, address, pricePerDay, pricePerMonth })
+		const property = await Property.create({ ownerId: req.user.id, title, description, category, governorate, address, pricePerDay, pricePerMonth })
 		tempProperty = property;
 
 		const filesUrl = []
@@ -109,6 +103,7 @@ exports.findAll = async (req, res) => {
 		);
 		return resHandler.send(res)
 	} catch (error) {
+		console.log("ERROR OCCURRED: "+ error);
 		resHandler.setError(
 			HttpStatus.INTERNAL_SERVER_ERROR,
 			`${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
@@ -209,7 +204,7 @@ exports.update = async (req, res) => {
 			return resHandler.send(res)
 		}
 
-		let { ownerId, title, description, category, bedrooms, bathrooms, governorate, address, pricePerDay, pricePerMonth } = req.body;
+		let { title, description, category, bedrooms, bathrooms, governorate, address, pricePerDay, pricePerMonth } = req.body;
 
 		// if (!isPropertyDataValid({ ownerId, title, description, address, pricePerDay, pricePerMonth })) {
 		// 	resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
@@ -334,8 +329,7 @@ exports.delete = async (req, res) => {
 
 
 function isPropertyDataValid(inProperty) {
-	if (!inProperty.ownerId ||
-		!inProperty.title || !inProperty.description || !inProperty.category ||
+	if (!inProperty.title || !inProperty.description || !inProperty.category ||
 		!inProperty.governorate || !inProperty.address || !inProperty.description ||
 		!inProperty.pricePerDay || !inProperty.pricePerMonth)
 		return false
