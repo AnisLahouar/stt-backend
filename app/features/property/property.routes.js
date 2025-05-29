@@ -16,7 +16,7 @@ router.get('/', controller.findAll)
 router.get('/owner/:id', controller.findByOwner)
 router.get('/:id', controller.findOne)
 router.put('/:id', [userMiddleware], controller.update)
-router.put('/confirm/:id', [isAdminMiddleware] ,controller.confirm)
+router.put('/confirm/:id', [userMiddleware, isAdminMiddleware] ,controller.confirm)
 router.delete('/:id', controller.delete)
 router.delete('/:id/image/:imageId', [userIdMiddleware],controller.deleteImage)
 

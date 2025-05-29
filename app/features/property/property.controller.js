@@ -250,15 +250,10 @@ exports.confirm = async (req, res) => {
   try {
     let { adminPricePerDay, adminPricePerMonth, status } = req.body;
 
-    if (status !== "accepted" || status != "hidden") {
-      resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.INVALID_PARAMETERS);
-      return resHandler.send(res)
-    }
-
-    if (!isPropertyDataAdminValid({ adminPricePerDay, adminPricePerMonth, status })) {
-      resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
-      return resHandler.send(res)
-    }
+    // if (!isPropertyDataAdminValid({ adminPricePerDay, adminPricePerMonth, status })) {
+    //   resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
+    //   return resHandler.send(res)
+    // }
 
     const property = await Property.findByPk(req.params.id);
 
@@ -267,11 +262,11 @@ exports.confirm = async (req, res) => {
       return resHandler.send(res)
     }
 
-    property.adminPricePerDay = adminPricePerDay;
-    property.adminPricePerMonth = adminPricePerMonth;
-    property.status = status;
+    property.adminPricePerDay = adminPricePerDay ? adminPricePerDay : property.adminPricePerDay;
+    property.adminPricePerMonth = adminPricePerMonth ? adminPricePerMonth : property.adminPricePerMonth;
+    property.status = status ? status : property.status;
 
-    await property.update();
+    await property.save();
     resHandler.setSuccess(
       HttpStatus.OK,
       RES_MESSAGES.PROPERTY.SUCCESS.UPDATED,
