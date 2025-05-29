@@ -6,7 +6,7 @@ const { logErrorResponse } = require("../helpers/log.helper");
 const ResHandler = require("../helpers/responseHandler.helper");
 
 exports.authMiddleware = async (req, res, next) => {
-  const token = req.headers["authorization"];
+  const token = req.headers["Authorization"];
   const resHandler = new ResHandler();
   if (!token) {
     resHandler.setError(

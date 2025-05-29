@@ -1,5 +1,7 @@
-// admin api check?
-
+const { HTTP_STATUS } = require("../core");
+const { RES_MESSAGES, JWTSECRET } = require("../core/variables.constants");
+const { logErrorResponse } = require("../helpers/log.helper");
+const ResHandler = require("../helpers/responseHandler.helper");
 
 exports.createUserRoleMiddleware = ({
   roles
@@ -25,16 +27,7 @@ exports.createUserRoleMiddleware = ({
 
 
 exports.isAdminMiddleware = async (req, res, next) => {
-  const token = req.headers["authorization"];
   const resHandler = new ResHandler();
-  if (!token) {
-    resHandler.setError(
-      HTTP_STATUS.UNAUTHORIZED,
-      RES_MESSAGES.AUTH.ERROR.NO_TOKEN
-    );
-    logErrorResponse(req, req.id, RES_MESSAGES.AUTH.ERROR.NO_TOKEN);
-    return resHandler.send(res);
-  }
   try {
     if (req.user && req.user.role == 'admin') {
       next();
@@ -52,16 +45,7 @@ exports.isAdminMiddleware = async (req, res, next) => {
 
 
 exports.isClientMiddleware = async (req, res, next) => {
-  const token = req.headers["authorization"];
   const resHandler = new ResHandler();
-  if (!token) {
-    resHandler.setError(
-      HTTP_STATUS.UNAUTHORIZED,
-      RES_MESSAGES.AUTH.ERROR.NO_TOKEN
-    );
-    logErrorResponse(req, req.id, RES_MESSAGES.AUTH.ERROR.NO_TOKEN);
-    return resHandler.send(res);
-  }
   try {
     if (req.user && req.user.role == 'client') {
       next();
@@ -79,16 +63,7 @@ exports.isClientMiddleware = async (req, res, next) => {
 
 
 exports.isOwnerMiddleware = async (req, res, next) => {
-  const token = req.headers["authorization"];
   const resHandler = new ResHandler();
-  if (!token) {
-    resHandler.setError(
-      HTTP_STATUS.UNAUTHORIZED,
-      RES_MESSAGES.AUTH.ERROR.NO_TOKEN
-    );
-    logErrorResponse(req, req.id, RES_MESSAGES.AUTH.ERROR.NO_TOKEN);
-    return resHandler.send(res);
-  }
   try {
     if (req.user && req.user.role == 'owner') {
       next();
