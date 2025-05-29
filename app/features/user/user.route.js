@@ -9,6 +9,6 @@ router.post("/", user.create);
 router.get("/", user.findAll);
 router.get("/:id", user.findOne);
 router.put("/:id", user.update);
-router.get("/as-admin/:role", [userMiddleware, isAdminMiddleware], user.adminGet)
+router.get("/as-admin/:role", [userMiddleware], user.adminGet)
 
 module.exports = router;

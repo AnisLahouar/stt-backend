@@ -185,10 +185,14 @@ exports.adminGet = async (req, res) => {
       return resHandler.send(res)
     }
 
-    const users = await User.findAll({
-      where: { role: req.params.role },
-      attributes: { include: ['id', 'name', 'email', 'propertyCount', 'status'] }
-    });
+    let users = []
+    if (req.user.role == 'admin') {
+      users = await User.findAll({
+        where: { role: req.params.role },
+        attributes: ['id', 'name', 'email', 'propertyCount', 'status']
+      });
+    }
+
     resHandler.setSuccess(
       HttpStatus.OK,
       RES_MESSAGES.USER.SUCCESS.FOUND_ALL,
