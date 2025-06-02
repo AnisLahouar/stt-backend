@@ -23,7 +23,7 @@ app.use(express.json(
   { limit: "50mb" }
 ));
 app.use(express.urlencoded({ extended: true }));
-
+app.use("/uploads", express.static("./app/uploads"));
 app.use(routes);
 
 module.exports = app;
