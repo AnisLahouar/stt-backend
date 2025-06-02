@@ -174,12 +174,19 @@ exports.findOne = async (req, res) => {
   try {
     const property = await Property.findByPk(req.params.id,
       {
-        include: {
-          model: PropertyImage,
-        }
+        include: [
+          {
+            model: PropertyImage,
+          },
+          {
+            model: User,
+            attributes: { exclude: ['password'] }
+          }
+        ]
       });
 
-    if (property !== null && property !== undefined) {
+    if (property) {
+      // property.user.password = '';
       resHandler.setSuccess(
         HttpStatus.OK,
         RES_MESSAGES.PROPERTY.SUCCESS.FOUND,
