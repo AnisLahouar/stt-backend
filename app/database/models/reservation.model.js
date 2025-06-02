@@ -1,6 +1,7 @@
 const { sequelize } = require("../sequelize");
 const { DataTypes, Sequelize } = require("sequelize");
 
+//reservation, replace dates with json object
 exports.Reservation = sequelize.define("Reservation", {
   id: {
     type: DataTypes.UUID,

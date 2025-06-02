@@ -86,21 +86,24 @@ exports.findAll = async (req, res) => {
 
     const whereClause = req.query
       ? {
-        ...(req.query.ownerId && { ownerId: { [Op.like]: `%${req.query.ownerId}%` } }),
+        //...(req.query.ownerId && { ownerId: { [Op.like]: `%${req.query.ownerId}%` } }),
         ...(req.query.title && { title: { [Op.like]: `%${req.query.title}%` } }),
         ...(req.query.category && { category: { [Op.like]: `%${req.query.category}%` } }),
         ...(req.query.bedrooms && { bedrooms: { [Op.like]: `%${req.query.bedrooms}%` } }),
         ...(req.query.bathrooms && { bathrooms: { [Op.like]: `%${req.query.bathrooms}%` } }),
         ...(req.query.governorate && { governorate: { [Op.like]: `%${req.query.governorate}%` } }),
         ...(req.query.address && { address: { [Op.like]: `%${req.query.address}%` } }),
-        ...(req.query.pricePerDay && { pricePerDay: { [Op.like]: `%${req.query.pricePerDay}%` } }),
-        ...(req.query.pricePerMonth && { pricePerMonth: { [Op.like]: `%${req.query.pricePerMonth}%` } }),
+        //...(req.query.pricePerDay && { pricePerDay: { [Op.like]: `%${req.query.pricePerDay}%` } }),
+        //...(req.query.pricePerMonth && { pricePerMonth: { [Op.like]: `%${req.query.pricePerMonth}%` } }),
         ...(req.query.adminPricePerDay && { adminPricePerDay: { [Op.like]: `%${req.query.adminPricePerDay}%` } }),
         ...(req.query.adminPricePerMonth && { adminPricePerMonth: { [Op.like]: `%${req.query.adminPricePerMonth}%` } }),
-        ...(req.query.status && { status: { [Op.like]: `%${req.query.status}%` } }),
+        //...(req.query.status && { status: { [Op.like]: `%${req.query.status}%` } }),
       }
       : {};
 
+    // include images
+    // exclude: price per day&month
+    // status == accepted
     const properties = await Property.findAndCountAll({ ...pagination, where: whereClause });
     resHandler.setSuccess(
       HttpStatus.OK,
@@ -168,10 +171,19 @@ exports.findByOwner = async (req, res) => {
   }
 };
 
-//todo: add property image
+//todo:
+// create new variant
+//add property image
+//add: reservations
+//include: admin prices only
+// if property not accepted +> throw error
 exports.findOne = async (req, res) => {
   const resHandler = new ResHandler();
   try {
+
+    //todo: add check if admin => continue
+    // else ownerId == req.user.id ? continue : throw error
+
     const property = await Property.findByPk(req.params.id,
       {
         include: [
@@ -180,6 +192,7 @@ exports.findOne = async (req, res) => {
           },
           {
             model: User,
+            as: 'owner',
             attributes: { exclude: ['password'] }
           }
         ]
@@ -199,6 +212,7 @@ exports.findOne = async (req, res) => {
     return resHandler.send(res)
   }
   catch (error) {
+    console.log(error);
     resHandler.setError(
       HttpStatus.INTERNAL_SERVER_ERROR,
       `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
@@ -262,6 +276,7 @@ exports.confirm = async (req, res) => {
     //   return resHandler.send(res)
     // }
 
+    //add missing fields to allow admin to update all fields 
     const property = await Property.findByPk(req.params.id);
 
     if (!property) {

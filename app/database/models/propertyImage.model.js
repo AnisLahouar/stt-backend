@@ -15,6 +15,7 @@ exports.PropertyImage = sequelize.define("PropertyImage", {
   imageUrl: {
     type: DataTypes.STRING
   }
+  // add is default
 });
 
 

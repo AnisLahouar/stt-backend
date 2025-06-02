@@ -6,6 +6,8 @@ const ResHandler = require("../../helpers/responseHandler.helper");
 const { paginate } = require("../../helpers/paginate.helper");
 const { Op, where } = require("sequelize");
 
+//add create for superAdmin to create admin
+
 exports.create = async (req, res) => {
   const resHandler = new ResHandler();
   try {
@@ -115,18 +117,10 @@ exports.findOne = async (req, res) => {
   }
 }
 
-exports.update = async (req, res) => {
+exports.adminUpdate = async (req, res) => {
   const resHandler = new ResHandler();
   try {
-    const { email, name, password, phone, address, role, status } = req.body
-
-    if (role == 'admin') {
-      resHandler.setError(
-        HttpStatus.BAD_REQUEST,
-        RES_MESSAGES.INVALID_PARAMETERS,
-      );
-      return resHandler.send(res)
-    }
+    const { email, name, password, phone, address, status } = req.body
 
     // if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
     // 	resHandler.setError(
@@ -151,7 +145,55 @@ exports.update = async (req, res) => {
       password: password ? password : user.password,
       phone: phone ? phone : user.phone,
       address: address ? address : user.address,
-      role: role ? role : user.role,
+      status: status ? status : user.status
+    }
+
+    let updatedUser = await user.update(updateData);
+    resHandler.setSuccess(
+      HttpStatus.OK,
+      RES_MESSAGES.USER.SUCCESS.CREATED,
+      updatedUser
+    );
+    return resHandler.send(res)
+
+  } catch (error) {
+    resHandler.setError(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+    )
+    return resHandler.send(res)
+  }
+}
+
+
+exports.update = async (req, res) => {
+  const resHandler = new ResHandler();
+  try {
+    const { email, name, password, phone, address, status } = req.body
+
+    // if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
+    // 	resHandler.setError(
+    // 		HttpStatus.BAD_REQUEST,
+    // 		RES_MESSAGES.MISSING_PARAMETERS,
+    // 	);
+    // 	return resHandler.send(res)
+    // }
+
+    const user = await User.findByPk(req.user.id)
+    if (!user) {
+      resHandler.setError(
+        HttpStatus.NOT_FOUND,
+        RES_MESSAGES.USER.ERROR.NOT_FOUND
+      )
+      return resHandler(res)
+    }
+
+    const updateData = {
+      email: email ? email : user.email,
+      name: name ? name : user.name,
+      password: password ? password : user.password,
+      phone: phone ? phone : user.phone,
+      address: address ? address : user.address,
       status: status ? status : user.status
     }
 

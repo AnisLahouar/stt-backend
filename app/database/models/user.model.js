@@ -28,7 +28,7 @@ exports.User = sequelize.define(
       defaultValue: ""
     },
     role: {
-      type: DataTypes.ENUM("admin", "owner", "client"),
+      type: DataTypes.ENUM("admin", "owner", "client"),//add superAdmin
       defaultValue: "client"
     },
     propertyCount: {
@@ -42,6 +42,8 @@ exports.User = sequelize.define(
     deletedAt: {
       type: Sequelize.DATE,
     }
+    // created By: Opional field
+    // superAdmin => creates admin
   },
   {
     indexes: [{ unique: true, fields: ["email"] }],

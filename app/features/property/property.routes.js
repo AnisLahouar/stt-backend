@@ -14,7 +14,7 @@ const multerMiddleware = createMulterMemoryMiddleware({
 router.post('/', [userMiddleware, multerMiddleware], controller.create)
 router.get('/', controller.findAll)
 router.get('/owner/:id', controller.findByOwner)
-router.get('/:id', controller.findOne)
+router.get('/:id', [userMiddleware], controller.findOne)
 router.put('/:id', [userMiddleware], controller.update)
 router.put('/confirm/:id', [userMiddleware, isAdminMiddleware] ,controller.confirm)
 router.delete('/:id', controller.delete)

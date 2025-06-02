@@ -4,6 +4,9 @@ const { deleteFile } = require("../../helpers/file.helper");
 const { compressImageBuffer, saveImageToDisk } = require("../../helpers/image.helper");
 const path = require('path');
 
+
+//image at index 0 in create -> default
+// in update: use IDs
 exports.createImageData = async (property, fileName, inTransaction) => {
   try {
     const imageData = await PropertyImage.create({
