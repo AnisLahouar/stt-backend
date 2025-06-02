@@ -82,6 +82,27 @@ exports.signin = async (req, res) => {
   }
 };
 
+exports.getAuthenticatedUser = async (req, res) => {
+
+  const resHandler = new ResHandler(res);
+  try {
+    const user = req.user
+    user.password = "";
+    resHandler.setSuccess(
+      HttpStatus.OK,
+      RES_MESSAGES.USER.SUCCESS.FOUND,
+      user
+    );
+    return resHandler.send(res);
+  } catch (error) {
+    resHandler.setError(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      RES_MESSAGES.SERVER_ERROR
+    );
+    return resHandler.send(res);
+  }
+};
+
 async function saveProfileImage(imageUrl, userId) {
   try {
     // Define the local path to save the image

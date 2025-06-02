@@ -6,10 +6,15 @@ const { logErrorResponse } = require("../helpers/log.helper");
 const ResHandler = require("../helpers/responseHandler.helper");
 
 exports.userIdMiddleware = async (req, res, next) => {
-  const authHeader = req.headers["Authorization"];
-  const token = authHeader;
+  console.log(req.headers)
+
+  const token = req.headers["Authorization"];
+  // console.log(token);
+  
+  // const authHeader = req.headers["authorization"];
   // const token = authHeader && authHeader.split(" ")[1];
-  // const token = req.headers["Authorization"];
+  // console.log(authHeader);
+
 
   const resHandler = new ResHandler();
   if (!token) {
@@ -36,14 +41,14 @@ exports.userIdMiddleware = async (req, res, next) => {
 };
 
 exports.userMiddleware = async (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader;
-  // const token = authHeader && authHeader.split(" ")[1];
-  // const token = req.headers["Authorization"];
-
   console.log(req.headers)
-  console.log(authHeader);
-  console.log(token);
+
+  const token = req.headers["Authorization"];
+  // console.log(token);
+  
+  // const authHeader = req.headers["authorization"];
+  // const token = authHeader && authHeader.split(" ")[1];
+  // console.log(authHeader);
 
 
   const resHandler = new ResHandler();

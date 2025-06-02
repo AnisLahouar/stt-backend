@@ -5,7 +5,6 @@ const { RES_MESSAGES } = require("../../core/variables.constants");
 const ResHandler = require("../../helpers/responseHandler.helper");
 const { paginate } = require("../../helpers/paginate.helper");
 const { Op, where } = require("sequelize");
-const { sanitizeSearchInput } = require("../../helpers/search.helper");
 
 exports.create = async (req, res) => {
   const resHandler = new ResHandler();
