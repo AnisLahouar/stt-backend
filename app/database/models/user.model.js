@@ -28,7 +28,7 @@ exports.User = sequelize.define(
       defaultValue: ""
     },
     role: {
-      type: DataTypes.ENUM("admin", "owner", "client"),//add superAdmin
+      type: DataTypes.ENUM("admin", "owner", "client", "superAdmin"),//add superAdmin
       defaultValue: "client"
     },
     propertyCount: {

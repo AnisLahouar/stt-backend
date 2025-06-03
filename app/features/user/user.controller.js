@@ -6,7 +6,44 @@ const ResHandler = require("../../helpers/responseHandler.helper");
 const { paginate } = require("../../helpers/paginate.helper");
 const { Op, where } = require("sequelize");
 
-//add create for superAdmin to create admin
+exports.createBySuper = async (req, res) => {
+  const resHandler = new ResHandler();
+  try {
+    // if (req.user.role != 'superAdmin') {
+    //   resHandler.setError(
+    //     HttpStatus.UNAUTHORIZED,
+    //     RES_MESSAGES.USER.ERROR.UNAUTHORIZED,
+    //   );
+    //   return resHandler.send(res)
+    // }
+
+    const { email, name, password, phone, address, role, status } = req.body
+    if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
+      resHandler.setError(
+        HttpStatus.BAD_REQUEST,
+        RES_MESSAGES.MISSING_PARAMETERS,
+      );
+      return resHandler.send(res)
+    }
+
+    role = "admin"
+    const user = await User.create({ email, name, password, phone, address, role, status });
+    resHandler.setSuccess(
+      HttpStatus.OK,
+      RES_MESSAGES.USER.SUCCESS.CREATED,
+      user
+    );
+    return resHandler.send(res)
+
+  } catch (error) {
+    console.log(`Error Occured: ${error.message}`);
+    resHandler.setError(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      `${RES_MESSAGES.SERVER_ERROR}`
+    )
+    return resHandler.send(res)
+  }
+}
 
 exports.create = async (req, res) => {
   const resHandler = new ResHandler();
@@ -35,9 +72,10 @@ exports.create = async (req, res) => {
     );
     return resHandler.send(res)
   } catch (error) {
+    console.log(`Error Occured: ${error.message}`);
     resHandler.setError(
       HttpStatus.INTERNAL_SERVER_ERROR,
-      `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+      `${RES_MESSAGES.SERVER_ERROR}`
     )
     return resHandler.send(res)
   }
@@ -73,9 +111,10 @@ exports.findAll = async (req, res) => {
     );
     return resHandler.send(res)
   } catch (error) {
+    console.log(`Error Occured: ${error.message}`);
     resHandler.setError(
       HttpStatus.INTERNAL_SERVER_ERROR,
-      `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+      `${RES_MESSAGES.SERVER_ERROR}`
     )
     return resHandler.send(res)
   }
@@ -109,9 +148,10 @@ exports.findOne = async (req, res) => {
     )
     return resHandler.send(res)
   } catch (error) {
+    console.log(`Error Occured: ${error.message}`);
     resHandler.setError(
       HttpStatus.INTERNAL_SERVER_ERROR,
-      `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+      `${RES_MESSAGES.SERVER_ERROR}`
     )
     return resHandler.send(res)
   }

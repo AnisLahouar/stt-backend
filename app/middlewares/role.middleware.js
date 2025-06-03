@@ -25,6 +25,23 @@ exports.createUserRoleMiddleware = ({
   }
 };
 
+exports.isSuperAdminMiddleware = async (req, res, next) => {
+  const resHandler = new ResHandler();
+  try {
+    if (req.user && req.user.role == 'superAdmin') {
+      next();
+    } else
+      throw new Error("ROLE MISMATCH")
+  } catch (error) {
+    resHandler.setError(
+      HTTP_STATUS.UNAUTHORIZED,
+      RES_MESSAGES.AUTH.ERROR.INVALID_TOKEN
+    );
+    logErrorResponse(req, req.id, RES_MESSAGES.AUTH.ERROR.INVALID_TOKEN);
+    return resHandler.send(res);
+  }
+};
+
 
 exports.isAdminMiddleware = async (req, res, next) => {
   const resHandler = new ResHandler();

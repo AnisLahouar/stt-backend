@@ -1,10 +1,11 @@
 const router = require("express").Router();
 
 const { authMiddleware } = require("../../middlewares/auth.middleware");
-const { isAdminMiddleware } = require("../../middlewares/role.middleware");
+const { isAdminMiddleware, isSuperAdminMiddleware } = require("../../middlewares/role.middleware");
 const { userMiddleware } = require("../../middlewares/user.middleware");
 const user = require("./user.controller");
 
+router.post("/", [userMiddleware, isSuperAdminMiddleware],user.createBySuper);
 router.post("/", user.create);
 router.get("/", user.findAll);
 router.get("/:id", [userMiddleware, isAdminMiddleware], user.findOne);
