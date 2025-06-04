@@ -1,5 +1,5 @@
 const { RES_MESSAGES } = require("../../core/variables.constants");
-const { Property, User, sequelize, PropertyImage } = require('../../database')
+const { Property, User, sequelize, PropertyImage, Reservation } = require('../../database')
 const { HttpStatus } = require("../../core/http_status.constants");
 
 const ResHandler = require("../../helpers/responseHandler.helper");
@@ -84,27 +84,27 @@ exports.findAll = async (req, res) => {
       req.query.direction
     );
 
-    const whereClause = req.query
-      ? {
-        //...(req.query.ownerId && { ownerId: { [Op.like]: `%${req.query.ownerId}%` } }),
-        ...(req.query.title && { title: { [Op.like]: `%${req.query.title}%` } }),
-        ...(req.query.category && { category: { [Op.like]: `%${req.query.category}%` } }),
-        ...(req.query.bedrooms && { bedrooms: { [Op.like]: `%${req.query.bedrooms}%` } }),
-        ...(req.query.bathrooms && { bathrooms: { [Op.like]: `%${req.query.bathrooms}%` } }),
-        ...(req.query.governorate && { governorate: { [Op.like]: `%${req.query.governorate}%` } }),
-        ...(req.query.address && { address: { [Op.like]: `%${req.query.address}%` } }),
-        //...(req.query.pricePerDay && { pricePerDay: { [Op.like]: `%${req.query.pricePerDay}%` } }),
-        //...(req.query.pricePerMonth && { pricePerMonth: { [Op.like]: `%${req.query.pricePerMonth}%` } }),
-        ...(req.query.adminPricePerDay && { adminPricePerDay: { [Op.like]: `%${req.query.adminPricePerDay}%` } }),
-        ...(req.query.adminPricePerMonth && { adminPricePerMonth: { [Op.like]: `%${req.query.adminPricePerMonth}%` } }),
-        //...(req.query.status && { status: { [Op.like]: `%${req.query.status}%` } }),
-      }
-      : {};
+    const whereClause = {
+      status: 'accepted',
+      ...(req.query.title && { title: { [Op.like]: `%${req.query.title}%` } }),
+      ...(req.query.category && { category: { [Op.like]: `%${req.query.category}%` } }),
+      ...(req.query.bedrooms && { bedrooms: { [Op.like]: `%${req.query.bedrooms}%` } }),
+      ...(req.query.bathrooms && { bathrooms: { [Op.like]: `%${req.query.bathrooms}%` } }),
+      ...(req.query.governorate && { governorate: { [Op.like]: `%${req.query.governorate}%` } }),
+      ...(req.query.address && { address: { [Op.like]: `%${req.query.address}%` } }),
+      ...(req.query.adminPricePerDay && { adminPricePerDay: { [Op.like]: `%${req.query.adminPricePerDay}%` } }),
+      ...(req.query.adminPricePerMonth && { adminPricePerMonth: { [Op.like]: `%${req.query.adminPricePerMonth}%` } }),
+    }
 
     // include images
     // exclude: price per day&month
     // status == accepted
-    const properties = await Property.findAndCountAll({ ...pagination, where: whereClause });
+    const properties = await Property.findAndCountAll(
+      { ...pagination, where: whereClause, attributes: { exclude: ['pricePerDay', 'pricePerMonth'] } },
+      {
+        include: [{ model: PropertyImage }]
+      }
+    );
     resHandler.setSuccess(
       HttpStatus.OK,
       RES_MESSAGES.PROPERTY.SUCCESS.FOUND_ALL,
@@ -177,12 +177,73 @@ exports.findByOwner = async (req, res) => {
 //add: reservations
 //include: admin prices only
 // if property not accepted +> throw error
+exports.getOne = async (req, res) => {
+  const resHandler = new ResHandler();
+  try {
+    const property = await Property.findByPk(req.params.id,
+      {
+        attributes: {
+          exclude: ['pricePerDay', 'pricePerMonth']
+        }
+      },
+      {
+        include: [
+          {
+            model: PropertyImage,
+          },
+          {
+            model: User,
+            as: 'owner',
+            attributes: { exclude: ['password'] }
+          },
+          {
+            model: Reservation,
+          }
+        ]
+      });
+
+    if (!property || property.status != 'accepted') {
+      resHandler.setError(
+        HttpStatus.BAD_REQUEST,
+        !property ? RES_MESSAGES.PROPERTY.ERROR.NOT_FOUND : RES_MESSAGES.PROPERTY.ERROR.UNVERIFIED
+      );
+      return resHandler.send(res)
+    }
+
+    resHandler.setSuccess(
+      HttpStatus.OK,
+      RES_MESSAGES.PROPERTY.SUCCESS.FOUND,
+      property
+    );
+    return resHandler.send(res)
+
+  }
+  catch (error) {
+    console.log(error);
+    resHandler.setError(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+    );
+    return resHandler.send(res)
+  }
+}
+
 exports.findOne = async (req, res) => {
   const resHandler = new ResHandler();
   try {
 
     //todo: add check if admin => continue
     // else ownerId == req.user.id ? continue : throw error
+
+    if (req.user.role != 'admin' && req.user.role != 'superAdmin') {
+      if (req.user.id != req.params.id) {
+        resHandler.setError(
+          HttpStatus.BAD_REQUEST,
+          RES_MESSAGES.INVALID_PARAMETERS,
+        );
+        return resHandler.send(res)
+      }
+    }
 
     const property = await Property.findByPk(req.params.id,
       {
@@ -248,6 +309,7 @@ exports.update = async (req, res) => {
       pricePerMonth: pricePerMonth ? pricePerMonth : property.pricePerMonth,
       bedrooms: bedrooms ? bedrooms : property.bedrooms,
       bathrooms: bathrooms ? bathrooms : property.bathrooms,
+      status: 'pending'
     }
     const updatedData = await property.update(updateData);
     resHandler.setSuccess(
@@ -269,12 +331,32 @@ exports.update = async (req, res) => {
 exports.confirm = async (req, res) => {
   const resHandler = new ResHandler();
   try {
-    let { adminPricePerDay, adminPricePerMonth, status } = req.body;
+    let { adminPricePerDay, adminPricePerMonth, status,
+      title, description, category, bedrooms, bathrooms, governorate, address, pricePerDay, pricePerMonth
+    } = req.body;
 
     // if (!isPropertyDataAdminValid({ adminPricePerDay, adminPricePerMonth, status })) {
     //   resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
     //   return resHandler.send(res)
     // }
+
+    const updateData = {
+      adminPricePerDay: adminPricePerDay ? adminPricePerDay : property.adminPricePerDay,
+      adminPricePerMonth: adminPricePerMonth ? adminPricePerMonth : property.adminPricePerMonth,
+      status: status ? status : property.status,
+
+      title: title ? title : property.title,
+      description: description ? description : property.description,
+      category: category ? category : property.category,
+      governorate: governorate ? governorate : property.governorate,
+      address: address ? address : property.address,
+      pricePerDay: pricePerDay ? pricePerDay : property.pricePerDay,
+      pricePerMonth: pricePerMonth ? pricePerMonth : property.pricePerMonth,
+      bedrooms: bedrooms ? bedrooms : property.bedrooms,
+      bathrooms: bathrooms ? bathrooms : property.bathrooms,
+      bathrooms: bathrooms ? bathrooms : property.bathrooms,
+      bathrooms: bathrooms ? bathrooms : property.bathrooms,
+    }
 
     //add missing fields to allow admin to update all fields 
     const property = await Property.findByPk(req.params.id);
@@ -284,11 +366,7 @@ exports.confirm = async (req, res) => {
       return resHandler.send(res)
     }
 
-    property.adminPricePerDay = adminPricePerDay ? adminPricePerDay : property.adminPricePerDay;
-    property.adminPricePerMonth = adminPricePerMonth ? adminPricePerMonth : property.adminPricePerMonth;
-    property.status = status ? status : property.status;
-
-    await property.save();
+    await property.update(updateData);
     resHandler.setSuccess(
       HttpStatus.OK,
       RES_MESSAGES.PROPERTY.SUCCESS.UPDATED,

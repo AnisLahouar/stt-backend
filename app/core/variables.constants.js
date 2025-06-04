@@ -32,7 +32,8 @@ exports.RES_MESSAGES = {
 
     ERROR: {
       NOT_FOUND: "property_not_found",
-      USER_NOT_FOUND: "property_user_not_found"
+      USER_NOT_FOUND: "property_user_not_found",
+      UNVERIFIED:"property_status_unverified"
     },
   },
 
