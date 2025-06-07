@@ -41,9 +41,12 @@ exports.User = sequelize.define(
     },
     deletedAt: {
       type: Sequelize.DATE,
+    },
+    createdBy: {
+      type: DataTypes.UUID,
+      defaultValue: Sequelize.UUIDV4,
+      allowNull: true,
     }
-    // created By: Opional field
-    // superAdmin => creates admin
   },
   {
     indexes: [{ unique: true, fields: ["email"] }],

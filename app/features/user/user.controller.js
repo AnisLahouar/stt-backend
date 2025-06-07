@@ -5,6 +5,7 @@ const { RES_MESSAGES } = require("../../core/variables.constants");
 const ResHandler = require("../../helpers/responseHandler.helper");
 const { paginate } = require("../../helpers/paginate.helper");
 const { Op, where } = require("sequelize");
+const { hasAdminPriviledges } = require("../../helpers/user.helper");
 
 exports.createBySuper = async (req, res) => {
   const resHandler = new ResHandler();
@@ -27,7 +28,7 @@ exports.createBySuper = async (req, res) => {
     }
 
     role = "admin"
-    const user = await User.create({ email, name, password, phone, address, role, status });
+    const user = await User.create({ email, name, password, phone, address, role, status, createdBy: req.user.id });
     resHandler.setSuccess(
       HttpStatus.OK,
       RES_MESSAGES.USER.SUCCESS.CREATED,
@@ -49,13 +50,17 @@ exports.create = async (req, res) => {
   const resHandler = new ResHandler();
   try {
     const { email, name, password, phone, address, role, status } = req.body
-    if (role == 'admin') {
-      resHandler.setError(
-        HttpStatus.BAD_REQUEST,
-        RES_MESSAGES.INVALID_PARAMETERS,
-      );
-      return resHandler.send(res)
+
+    if (!hasAdminPriviledges(req.user)) {
+      if (role == 'admin' || role == 'superAdmin') {
+        resHandler.setError(
+          HttpStatus.BAD_REQUEST,
+          RES_MESSAGES.INVALID_PARAMETERS,
+        );
+        return resHandler.send(res)
+      }
     }
+
     if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
       resHandler.setError(
         HttpStatus.BAD_REQUEST,
@@ -63,8 +68,8 @@ exports.create = async (req, res) => {
       );
       return resHandler.send(res)
     }
-    const user =
-      await User.create({ email, name, password, phone, address, role, status });
+
+    const user = await User.create({ email, name, password, phone, address, role, status, createdBy: req.user.id });
     resHandler.setSuccess(
       HttpStatus.OK,
       RES_MESSAGES.USER.SUCCESS.CREATED,
@@ -75,7 +80,7 @@ exports.create = async (req, res) => {
     console.log(`Error Occured: ${error.message}`);
     resHandler.setError(
       HttpStatus.INTERNAL_SERVER_ERROR,
-      `${RES_MESSAGES.SERVER_ERROR}`
+      RES_MESSAGES.SERVER_ERROR
     )
     return resHandler.send(res)
   }
@@ -125,7 +130,11 @@ exports.findOne = async (req, res) => {
   try {
 
     if (!req.params.id) {
-      throw new Error("Invalid user ID Provided")
+      resHandler.setError(
+        HttpStatus.NOT_FOUND,
+        RES_MESSAGES.INVALID_PARAMETERS
+      )
+      return resHandler.send(res)
     }
 
     const user = await User.findByPk(req.params.id)
@@ -137,7 +146,7 @@ exports.findOne = async (req, res) => {
       return resHandler.send(res)
     }
 
-    if (!req.user || req.user.role !== 'admin') {
+    if (req.user.role !== 'superAdmin' && req.user.role !== 'admin') {
       user.password = '';
     }
 

@@ -191,7 +191,7 @@ exports.publicGetOne = async (req, res) => {
           {
             model: User,
             as: 'owner',
-            attributes: { exclude: ['password'] }
+            attributes: { exclude: ['password', 'createdBy'] }
           },
           {
             model: Reservation,
@@ -231,8 +231,8 @@ exports.findOne = async (req, res) => {
 
     //todo: add check if admin => continue
     // else ownerId == req.user.id ? continue : throw error
-
-    if (req.user.role != 'admin' && req.user.role != 'superAdmin') {
+    const isAdminLevel = hasAdminPriviledges(req.user);
+    if (!isAdminLevel) {
       if (req.user.id != req.params.id) {
         resHandler.setError(
           HttpStatus.BAD_REQUEST,
@@ -251,7 +251,7 @@ exports.findOne = async (req, res) => {
           {
             model: User,
             as: 'owner',
-            attributes: { exclude: ['password'] }
+            attributes: { exclude: isAdminLevel ? ['password'] : ['password', 'createdBy'] }
           }
         ]
       });
