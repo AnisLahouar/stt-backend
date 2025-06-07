@@ -7,11 +7,12 @@ const path = require('path');
 
 //image at index 0 in create -> default
 // in update: use IDs
-exports.createImageData = async (property, fileName, inTransaction) => {
+exports.createImageData = async (property, fileName, index, inTransaction) => {
   try {
     const imageData = await PropertyImage.create({
       propertyId: property.id,
-      imageUrl: fileName
+      imageUrl: fileName,
+      isDefault: index == 0
     }, {
       transaction: inTransaction
     })
@@ -23,7 +24,11 @@ exports.createImageData = async (property, fileName, inTransaction) => {
     }
   }
   catch (error) {
-    throw new Error("Create Image Data Failed: " + error.message)
+    console.log("Error Occured Creating Image Data: " + error.message);
+    return {
+      status: false,
+    }
+    // throw new Error("Create Image Data Failed: " + error.message)
   }
 }
 

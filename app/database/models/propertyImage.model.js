@@ -14,10 +14,8 @@ exports.PropertyImage = sequelize.define("PropertyImage", {
   },
   imageUrl: {
     type: DataTypes.STRING
+  },
+  isDefault: {
+    type: DataTypes.BOOLEAN
   }
-  // add is default
 });
-
-
-// crud: use transaction to ensure Property data is created, then file uploaded, Image data is created => apply transactionx
-// fetch property id before transaction is DONE

@@ -6,19 +6,20 @@ const { isAdminMiddleware } = require("../../middlewares/role.middleware");
 const { userMiddleware, userIdMiddleware } = require("../../middlewares/user.middleware");
 
 const multerMiddleware = createMulterMemoryMiddleware({
-    fieldName: "images",
-    maxCount: 8,
-    maxFileSizeMB: 5
+  fieldName: "images",
+  maxCount: 8,
+  maxFileSizeMB: 5
 })
 
 router.post('/', [userMiddleware, multerMiddleware], controller.create)
 router.get('/', controller.findAll)
 router.get('/owner/:id', controller.findByOwner)
-router.get('/:id', controller.getOne)
+router.get('/:id', controller.publicGetOne)
 router.get('/:id', [userMiddleware], controller.findOne)
 router.put('/:id', [userMiddleware], controller.update)
-router.put('/confirm/:id', [userMiddleware, isAdminMiddleware] ,controller.confirm)
+router.put('/confirm/:id', [userMiddleware, isAdminMiddleware], controller.confirm)
 router.delete('/:id', controller.delete)
-router.delete('/:id/image/:imageId', [userIdMiddleware],controller.deleteImage)
+router.delete('/:id/image/:imageId', [userIdMiddleware], controller.deleteImage)
+router.put('/:id/images', [userMiddleware], controller.updateDefaultImage)
 
 module.exports = router

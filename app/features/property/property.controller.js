@@ -7,7 +7,8 @@ const { createImageData, UploadFile, deleteImageFile } = require("../propertyIma
 const { paginate } = require("../../helpers/paginate.helper");
 const { sanitizeSearchInput } = require("../../helpers/search.helper");
 const { includes } = require("lodash");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
+const { hasAdminPriviledges } = require("../../helpers/user.helper");
 
 
 exports.create = async (req, res) => {
@@ -24,22 +25,18 @@ exports.create = async (req, res) => {
 
     tempProperty = await Property.create({ ownerId: req.user.id, title, description, category, governorate, address, pricePerDay, pricePerMonth })
 
-    const filesUrl = []
+    const imagesData = [];
     const files = req.files.filter((file) => file.fieldname === "images")
     const filesPromises = files.map(async element => {
       const index = files.indexOf(element)
       const resultPath = await UploadFile(element, 'property', `${tempProperty.id}_${index}`)
-      filesUrl.push(resultPath)
+      if (resultPath) {
+        const { status, result } = await createImageData(tempProperty, resultPath, index, transaction1)
+        if (status)
+          imagesData.push(result)
+      }
     })
     await Promise.all(filesPromises)
-
-    const imagesData = [];
-    const dataPromises = filesUrl.map(async element => {
-      const { status, result } = await createImageData(tempProperty, element, transaction1)
-      if (status)
-        imagesData.push(result)
-    })
-    await Promise.all(dataPromises)
 
     await transaction1.commit()
 
@@ -177,7 +174,7 @@ exports.findByOwner = async (req, res) => {
 //add: reservations
 //include: admin prices only
 // if property not accepted +> throw error
-exports.getOne = async (req, res) => {
+exports.publicGetOne = async (req, res) => {
   const resHandler = new ResHandler();
   try {
     const property = await Property.findByPk(req.params.id,
@@ -428,6 +425,61 @@ exports.delete = async (req, res) => {
   }
 };
 
+exports.updateDefaultImage = async (req, res) => {
+  const resHandler = new ResHandler();
+  try {
+    const { ownerId, propertyId, oldDefaultId, newDefaultId } = req.body;
+    if (!ownerId || !propertyId || !oldDefaultId || !newDefaultId) {
+      resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
+      return resHandler.send(res)
+    }
+
+    const property = await Property.findByPk(req.params.id);
+
+    if (!property) {
+      resHandler.setError(HttpStatus.NOT_FOUND, RES_MESSAGES.PROPERTY.ERROR.NOT_FOUND);
+      return resHandler.send(res)
+    }
+
+    if (property.ownerId != ownerId) {
+      if (!hasAdminPriviledges(req.user)) {
+        resHandler.setError(HttpStatus.UNAUTHORIZED, RES_MESSAGES.USER.ERROR.UNAUTHORIZED);
+        return resHandler.send(res)
+      }
+    }
+
+    await PropertyImage.update(
+      { isDefault: true },
+      {
+        where: {
+          id: newDefaultId
+        }
+      });
+
+    await PropertyImage.update(
+      { isDefault: false },
+      {
+        where: {
+          id: oldDefaultId
+        }
+      });
+
+    resHandler.setSuccess(
+      HttpStatus.OK,
+      RES_MESSAGES.PROPERTY_IMAGE.SUCCESS.UPDATED,
+      {}
+    );
+    return resHandler.send(res)
+  }
+  catch (error) {
+    resHandler.setError(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+    );
+    return resHandler.send(res)
+  }
+}
+
 exports.deleteImage = async (req, res) => {
   const resHandler = new ResHandler();
   try {
@@ -474,17 +526,10 @@ exports.deleteImage = async (req, res) => {
   }
 }
 
-
 function isPropertyDataValid(inProperty) {
   if (!inProperty.title || !inProperty.description || !inProperty.category ||
     !inProperty.governorate || !inProperty.address || !inProperty.description ||
     !inProperty.pricePerDay || !inProperty.pricePerMonth)
-    return false
-  return true
-}
-
-function isPropertyDataAdminValid(inProperty) {
-  if (!inProperty.adminPricePerDay || !inProperty.adminPricePerMonth || !inProperty.status)
     return false
   return true
 }
