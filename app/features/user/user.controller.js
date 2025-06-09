@@ -19,7 +19,7 @@ exports.createBySuper = async (req, res) => {
     // }
 
     const { email, name, password, phone, address, role, status } = req.body
-    if (!isUserDataValid({ email, name, password, phone, address, role, status })) {
+    if (!isUserDataValid({ email, name, password, phone, address, status }) || !role) {
       resHandler.setError(
         HttpStatus.BAD_REQUEST,
         RES_MESSAGES.MISSING_PARAMETERS,
@@ -27,7 +27,7 @@ exports.createBySuper = async (req, res) => {
       return resHandler.send(res)
     }
 
-    role = "admin"
+    // role = "admin"
     const user = await User.create({ email, name, password, phone, address, role, status, createdBy: req.user.id });
     resHandler.setSuccess(
       HttpStatus.OK,

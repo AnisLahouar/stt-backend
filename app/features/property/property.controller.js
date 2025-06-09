@@ -1,5 +1,5 @@
 const { RES_MESSAGES } = require("../../core/variables.constants");
-const { Property, User, sequelize, PropertyImage, Reservation } = require('../../database')
+const { Property, User, sequelize, PropertyImage, Reservation, ReservationDate } = require('../../database')
 const { HttpStatus } = require("../../core/http_status.constants");
 
 const ResHandler = require("../../helpers/responseHandler.helper");
@@ -188,13 +188,16 @@ exports.publicGetOne = async (req, res) => {
           {
             model: PropertyImage,
           },
-          {
-            model: User,
-            as: 'owner',
-            attributes: { exclude: ['password', 'createdBy'] }
-          },
+          // {
+          //   model: User,
+          //   as: 'owner',
+          //   attributes: { exclude: ['password', 'createdBy'] }
+          // },
           {
             model: Reservation,
+            include:{
+              model: ReservationDate
+            }
           }
         ]
       });

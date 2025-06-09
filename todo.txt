@@ -48,8 +48,3 @@ Owner:
 Number of Properties of owner by each status
 Number of Reservations of owner by each status
 
-
-in all updates: check if admin => continue
-check if request sender == owner ? continue : throw error
-
-on client update, set property status to waiting 

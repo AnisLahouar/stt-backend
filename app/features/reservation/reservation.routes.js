@@ -11,3 +11,7 @@ router.put('/:id', controller.update)
 // router.delete('/:id', controller.delete)
 
 module.exports = router
+
+//exptected errors for gets:
+// get => group by month (start and end date)
+// add param for month
