@@ -1,5 +1,7 @@
 exports.JWTSECRET = "secret"
 
+exports.PASSWORD_MIN_LENGTH = 4
+
 exports.RES_MESSAGES = {
   MISSING_PARAMETERS: "missing_parameters",
   INVALID_PARAMETERS: "invalid_parameters",

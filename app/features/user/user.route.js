@@ -11,6 +11,7 @@ router.get("/", user.findAll);
 router.get("/:id", [userMiddleware], user.findOne);
 router.put("/:id", [userMiddleware, isAdminMiddleware], user.adminUpdate);
 router.put("/", [userMiddleware], user.update);
+router.put("/password", [userMiddleware], user.updatePassword);
 router.get("/as-admin/:role", [userMiddleware], user.adminGet)
 
 module.exports = router;
