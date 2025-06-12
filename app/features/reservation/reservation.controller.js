@@ -196,6 +196,10 @@ exports.findByPhone = async (req, res) => {
 exports.findByProperty = async (req, res) => {
   const resHandler = new ResHandler();
   try {
+    const { year, fromMonth, toMonth } = req.query;
+
+    console.log(req.query);
+    
 
     const pagination = paginate(
       req.query.page > 1 ? req.query.page : 1,
@@ -215,12 +219,32 @@ exports.findByProperty = async (req, res) => {
       }
       : {};
 
+    let reservationDateWhere = {};
+
+    if (year) {
+      reservationDateWhere.date = {
+        [Op.between]: [
+          new Date(`${year}-01-01`),
+          new Date(`${year}-12-31`)
+        ]
+      };
+    }
+
+    if (fromMonth && toMonth) {
+      const fromDate = new Date(`${fromMonth}-01`); // format: YYYY-MM
+      const toDate = new Date(`${toMonth}-31`); // approximate end of month
+      reservationDateWhere.date = {
+        [Op.between]: [fromDate, toDate]
+      };
+    }
+
     const reservations = await Reservation.findAndCountAll({
       where: {
         propertyId: req.params.id
       },
       include: {
         model: ReservationDate,
+        where: Object.keys(reservationDateWhere).length > 0 ? reservationDateWhere : undefined
       },
       ...pagination, where: whereClause
     });
