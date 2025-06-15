@@ -7,6 +7,8 @@ const { propertyExists } = require("../property/property.service");
 const { paginate } = require("../../helpers/paginate.helper");
 const { sanitizeSearchInput } = require("../../helpers/search.helper");
 const { Op } = require("sequelize");
+const { hasAdminPriviledges } = require("../../helpers/user.helper");
+const { acceptPendingReservationRequest, addPendingReservationRequest, deletePendingReservationRequest } = require("../analytics/analytics.service");
 
 
 exports.create = async (req, res) => {
@@ -43,15 +45,18 @@ exports.create = async (req, res) => {
       }
     )
 
-    console.log("Created Reservation Id: " + createdReservation.id);
+    // console.log("Created Reservation Id: " + createdReservation.id);
 
     const createdDates = await createDates(createdReservation.id, dates, transaction);
 
     const result = { ...createdReservation.toJSON(), createdDates }
 
-    console.log("READY TO COMMIT");
+    // console.log("READY TO COMMIT");
 
     await transaction.commit();
+
+    await addPendingReservationRequest();
+
     resHandler.setSuccess(
       HttpStatus.OK,
       RES_MESSAGES.RESERVATION.SUCCESS.CREATED,
@@ -265,6 +270,7 @@ exports.findByProperty = async (req, res) => {
   }
 };
 
+//todo: discuss logic for updating
 exports.update = async (req, res) => {
   const resHandler = new ResHandler();
   try {
@@ -284,16 +290,25 @@ exports.update = async (req, res) => {
     const reservation = await Reservation.findByPk(req.params.id);
 
     if (reservation !== null && reservation !== undefined) {
-      reservation.propertyId = propertyId
+      // reservation.propertyId = propertyId
       reservation.clientName = clientName
       reservation.clientEmail = clientEmail
       reservation.clientPhone = clientPhone
       reservation.comment = comment
-      reservation.status = status
+
+      if (hasAdminPriviledges(req.user)) {
+        reservation.status = status
+      }else{
+        reservation.status = 'pending'
+      }
 
       const createdDates = await replaceDates(reservation.id, req.body.dates)
 
       await reservation.update();
+
+      if (reservation.status == 'accepted') {
+        await acceptPendingReservationRequest();
+      }
 
       const result = { ...reservation.toJSON(), createdDates }
 
@@ -323,9 +338,15 @@ exports.delete = async (req, res) => {
     const reservation = await Reservation.findByPk(req.params.id);
 
     if (reservation !== null && reservation !== undefined) {
+
+      const wasPending = reservation.status == 'pending'
+
       await reservation.destroy();
 
       await deleteDates(req.params.id)
+
+      if (wasPending)
+        await deletePendingReservationRequest();
 
       resHandler.setSuccess(
         HttpStatus.OK,

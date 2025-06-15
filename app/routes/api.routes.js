@@ -8,6 +8,7 @@ const othersRoutes = require("../features/others/others.route");
 const propertyRoutes = require("../features/property/property.routes");
 const reservationRoutes = require("../features/reservation/reservation.routes");
 const userRoutes = require("../features/user/user.route");
+const analytics = require("../features/analytics/analytics.route");
 
 const { authMiddleware } = require("../middlewares/auth.middleware");
 
@@ -19,6 +20,7 @@ router.use("/auth", authRoutes);
 router.use("/property", propertyRoutes);
 router.use("/reservation", reservationRoutes);
 router.use("/user", userRoutes);
+router.use("/analytics", analytics);
 // router.use("/service", [authMiddleware], serviceRoutes);
 // router.use("/card", [authMiddleware], cardRoutes);
 // router.use("/folder", [authMiddleware], folderRoutes);

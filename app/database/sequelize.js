@@ -1,9 +1,6 @@
-
 const { Sequelize } = require("sequelize");
 const { sqlConfig } = require("../core");
 const { log } = require("../core/logger.config");
-
-
 
 const sequelize = new Sequelize(
   sqlConfig.DB,
@@ -26,7 +23,7 @@ const sequelize = new Sequelize(
 (async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync({ alter: false, logging: true });
+    await sequelize.sync({ alter: true, logging: true });
 
     console.log("Connection has been established successfully To ***MYSQL.");
     log.info("Connection has been established successfully.");

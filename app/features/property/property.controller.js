@@ -9,6 +9,7 @@ const { sanitizeSearchInput } = require("../../helpers/search.helper");
 const { includes } = require("lodash");
 const { Op, where } = require("sequelize");
 const { hasAdminPriviledges } = require("../../helpers/user.helper");
+const { addPendingPropertyCreation, acceptPendingPropertyCreation } = require("../analytics/analytics.service");
 
 
 exports.create = async (req, res) => {
@@ -49,6 +50,8 @@ exports.create = async (req, res) => {
           id: req.user.id
         }
       });
+
+    await addPendingPropertyCreation();
 
     const result = { ...tempProperty, imagesData };
 
@@ -195,7 +198,7 @@ exports.publicGetOne = async (req, res) => {
           // },
           {
             model: Reservation,
-            include:{
+            include: {
               model: ReservationDate
             }
           }
@@ -311,7 +314,15 @@ exports.update = async (req, res) => {
       bathrooms: bathrooms ? bathrooms : property.bathrooms,
       status: 'pending'
     }
+
+    const wasAccepted = property.status == 'accepted'
+
     const updatedData = await property.update(updateData);
+
+    if (wasAccepted) {
+      await addPendingPropertyCreation();
+    }
+
     resHandler.setSuccess(
       HttpStatus.OK,
       RES_MESSAGES.PROPERTY.SUCCESS.UPDATED,
@@ -367,6 +378,9 @@ exports.confirm = async (req, res) => {
     }
 
     await property.update(updateData);
+
+    await acceptPendingPropertyCreation();
+
     resHandler.setSuccess(
       HttpStatus.OK,
       RES_MESSAGES.PROPERTY.SUCCESS.UPDATED,
@@ -406,11 +420,18 @@ exports.delete = async (req, res) => {
       return resHandler.send(res)
     }
 
+
+    const wasAccepted = property.status == 'accepted'
+
     await property.destroy();
 
     user.propertyCount--;
 
     await user.update({ propertyCount: user.propertyCount });
+
+    if (!wasAccepted) {
+      await acceptPendingPropertyCreation();
+    }
 
     resHandler.setSuccess(
       HttpStatus.OK,
