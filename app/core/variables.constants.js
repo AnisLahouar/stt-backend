@@ -29,7 +29,8 @@ exports.RES_MESSAGES = {
       FOUND: "property_found",
       FOUND_ALL: "properties_found",
       UPDATED: "property_updated",
-      DELETED: "property_deleted"
+      DELETED: "property_deleted",
+      COUNTED: 'properties_by_status_counted'
     },
 
     ERROR: {

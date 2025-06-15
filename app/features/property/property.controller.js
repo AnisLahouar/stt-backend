@@ -73,6 +73,54 @@ exports.create = async (req, res) => {
   }
 }
 
+exports.count = async (req, res) => {
+  const resHandler = new ResHandler();
+  try {
+    const ownerId = req.params.ownerId;
+    if (!ownerId) {
+      resHandler.setError(
+        HttpStatus.BAD_REQUEST,
+        RES_MESSAGES.MISSING_PARAMETERS
+      );
+      return resHandler.send(res);
+    }
+
+    const counts = await Property.findAll({
+      where: { ownerId },
+      attributes: [
+        'status',
+        [sequelize.fn('COUNT', sequelize.col('status')), 'count']
+      ],
+      group: ['status']
+    });
+
+    // Format output as { pending: X, accepted: Y, hidden: Z }
+    const result = {
+      pending: 0,
+      accepted: 0,
+      hidden: 0
+    };
+
+    counts.forEach(row => {
+      result[row.status] = parseInt(row.getDataValue('count'), 10);
+    });
+
+    resHandler.setSuccess(
+      HttpStatus.OK,
+      RES_MESSAGES.PROPERTY.SUCCESS.COUNTED,
+      result
+    );
+    return resHandler.send(res)
+  } catch (error) {
+    console.log("ERROR OCCURRED: " + error);
+    resHandler.setError(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+    );
+    return resHandler.send(res)
+  }
+};
+
 exports.findAll = async (req, res) => {
   const resHandler = new ResHandler();
   try {
