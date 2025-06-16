@@ -3,7 +3,7 @@ const router = express.Router();
 const controller = require('./reservation.controller');
 const { userMiddleware } = require("../../middlewares/user.middleware");
 
-router.post('/', [userMiddleware], controller.create)
+router.post('/', controller.create)
 router.get('/', controller.findAll)
 router.get('/:id', controller.findOne)
 router.get('/user/:phone', controller.findByPhone)

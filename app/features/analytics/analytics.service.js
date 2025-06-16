@@ -2,7 +2,6 @@ const { GlobalAnalytics } = require("../../database/models/globalAnalytics.model
 const ResHandler = require("../../helpers/responseHandler.helper");
 
 exports.addPendingPropertyCreation = async () => {
-  const resHandler = new ResHandler(res);
   try {
     const analytics = await GlobalAnalytics.findOne();
 
@@ -10,25 +9,14 @@ exports.addPendingPropertyCreation = async () => {
 
     await analytics.save();
 
-    resHandler.setSuccess(
-      HttpStatus.OK,
-      RES_MESSAGES.AUTH.SUCCESS.USER_CREATED,
-      analytics
-    )
-    return resHandler.send(res);
-
+    return true
   } catch (error) {
     console.log(error);
-    resHandler.setError(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      RES_MESSAGES.SERVER_ERROR
-    );
-    return resHandler.send(res);
+    return false
   }
 }
 
 exports.acceptPendingPropertyCreation = async () => {
-  const resHandler = new ResHandler(res);
   try {
     const analytics = await GlobalAnalytics.findOne();
 
@@ -36,25 +24,14 @@ exports.acceptPendingPropertyCreation = async () => {
 
     await analytics.save();
 
-    resHandler.setSuccess(
-      HttpStatus.OK,
-      RES_MESSAGES.AUTH.SUCCESS.USER_CREATED,
-      analytics
-    )
-    return resHandler.send(res);
-
+    return true
   } catch (error) {
     console.log(error);
-    resHandler.setError(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      RES_MESSAGES.SERVER_ERROR
-    );
-    return resHandler.send(res);
+    return false
   }
 }
 
 exports.addPendingReservationRequest = async () => {
-  const resHandler = new ResHandler(res);
   try {
     const analytics = await GlobalAnalytics.findOne();
 
@@ -62,25 +39,15 @@ exports.addPendingReservationRequest = async () => {
 
     await analytics.save();
 
-    resHandler.setSuccess(
-      HttpStatus.OK,
-      RES_MESSAGES.AUTH.SUCCESS.USER_CREATED,
-      analytics
-    )
-    return resHandler.send(res);
+    return true;
 
   } catch (error) {
     console.log(error);
-    resHandler.setError(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      RES_MESSAGES.SERVER_ERROR
-    );
-    return resHandler.send(res);
+    return false;
   }
 }
 
 exports.acceptPendingReservationRequest = async () => {
-  const resHandler = new ResHandler(res);
   try {
     const analytics = await GlobalAnalytics.findOne();
 
@@ -88,20 +55,11 @@ exports.acceptPendingReservationRequest = async () => {
 
     await analytics.save();
 
-    resHandler.setSuccess(
-      HttpStatus.OK,
-      RES_MESSAGES.AUTH.SUCCESS.USER_CREATED,
-      analytics
-    )
-    return resHandler.send(res);
+    return true;
 
   } catch (error) {
     console.log(error);
-    resHandler.setError(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      RES_MESSAGES.SERVER_ERROR
-    );
-    return resHandler.send(res);
+    return false;
   }
 }
 
@@ -115,19 +73,10 @@ exports.deletePendingReservationRequest = async () => {
 
     await analytics.save();
 
-    resHandler.setSuccess(
-      HttpStatus.OK,
-      RES_MESSAGES.AUTH.SUCCESS.USER_CREATED,
-      analytics
-    )
-    return resHandler.send(res);
+    return true;
 
   } catch (error) {
     console.log(error);
-    resHandler.setError(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      RES_MESSAGES.SERVER_ERROR
-    );
-    return resHandler.send(res);
+    return false
   }
 }

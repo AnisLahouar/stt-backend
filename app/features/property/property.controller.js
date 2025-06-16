@@ -10,6 +10,7 @@ const { includes } = require("lodash");
 const { Op, where } = require("sequelize");
 const { hasAdminPriviledges } = require("../../helpers/user.helper");
 const { addPendingPropertyCreation, acceptPendingPropertyCreation } = require("../analytics/analytics.service");
+const { v4: uuidv4 } = require("uuid");
 
 
 exports.create = async (req, res) => {
@@ -30,7 +31,7 @@ exports.create = async (req, res) => {
     const files = req.files.filter((file) => file.fieldname === "images")
     const filesPromises = files.map(async element => {
       const index = files.indexOf(element)
-      const resultPath = await UploadFile(element, 'property', `${tempProperty.id}_${index}`)
+      const resultPath = await UploadFile(element, 'property', `${tempProperty.id}_${uuidv4()}`)
       if (resultPath) {
         const { status, result } = await createImageData(tempProperty, resultPath, index, transaction1)
         if (status)
@@ -121,6 +122,51 @@ exports.count = async (req, res) => {
   }
 };
 
+exports.publicFindAll = async (req, res) => {
+  const resHandler = new ResHandler();
+  try {
+
+    const pagination = paginate(
+      req.query.page > 1 ? req.query.page : 1,
+      req.query.pageSize || 10,
+      req.query.orderBy,
+      req.query.direction
+    );
+
+    const whereClause = {
+      status: 'accepted',
+      ...(req.query.title && { title: { [Op.like]: `%${req.query.title}%` } }),
+      ...(req.query.category && { category: { [Op.like]: `%${req.query.category}%` } }),
+      ...(req.query.bedrooms && { bedrooms: { [Op.like]: `%${req.query.bedrooms}%` } }),
+      ...(req.query.bathrooms && { bathrooms: { [Op.like]: `%${req.query.bathrooms}%` } }),
+      ...(req.query.governorate && { governorate: { [Op.like]: `%${req.query.governorate}%` } }),
+      ...(req.query.address && { address: { [Op.like]: `%${req.query.address}%` } }),
+      ...(req.query.adminPricePerDay && { adminPricePerDay: { [Op.like]: `%${req.query.adminPricePerDay}%` } }),
+      ...(req.query.adminPricePerMonth && { adminPricePerMonth: { [Op.like]: `%${req.query.adminPricePerMonth}%` } }),
+    }
+
+    // include images
+    // exclude: price per day&month
+    // status == accepted
+    const properties = await Property.findAndCountAll(
+      { ...pagination, where: whereClause, include: [{ model: PropertyImage }], attributes: { exclude: ['pricePerDay', 'pricePerMonth'] } },
+    );
+    resHandler.setSuccess(
+      HttpStatus.OK,
+      RES_MESSAGES.PROPERTY.SUCCESS.FOUND_ALL,
+      properties
+    );
+    return resHandler.send(res)
+  } catch (error) {
+    console.log("ERROR OCCURRED: " + error);
+    resHandler.setError(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+    );
+    return resHandler.send(res)
+  }
+};
+
 exports.findAll = async (req, res) => {
   const resHandler = new ResHandler();
   try {
@@ -148,10 +194,13 @@ exports.findAll = async (req, res) => {
     // exclude: price per day&month
     // status == accepted
     const properties = await Property.findAndCountAll(
-      { ...pagination, where: whereClause, attributes: { exclude: ['pricePerDay', 'pricePerMonth'] } },
       {
-        include: [{ model: PropertyImage }]
-      }
+        ...pagination, where: whereClause,
+        include: [{ model: PropertyImage }],
+        attributes: {
+          exclude: hasAdminPriviledges(req.user) ? [] : ['pricePerDay', 'pricePerMonth']
+        }
+      },
     );
     resHandler.setSuccess(
       HttpStatus.OK,
@@ -168,6 +217,7 @@ exports.findAll = async (req, res) => {
     return resHandler.send(res)
   }
 };
+
 
 exports.findByOwner = async (req, res) => {
   const resHandler = new ResHandler();
@@ -285,6 +335,7 @@ exports.findOne = async (req, res) => {
 
     //todo: add check if admin => continue
     // else ownerId == req.user.id ? continue : throw error
+    console.log(req.user);
     const isAdminLevel = hasAdminPriviledges(req.user);
     if (!isAdminLevel) {
       if (req.user.id != req.params.id) {
@@ -305,13 +356,12 @@ exports.findOne = async (req, res) => {
           {
             model: User,
             as: 'owner',
-            attributes: { exclude: isAdminLevel ? ['password'] : ['password', 'createdBy'] }
+            attributes: { exclude: ['password', 'createdBy'] }
           }
         ]
       });
 
     if (property) {
-      // property.user.password = '';
       resHandler.setSuccess(
         HttpStatus.OK,
         RES_MESSAGES.PROPERTY.SUCCESS.FOUND,
@@ -500,8 +550,8 @@ exports.delete = async (req, res) => {
 exports.updateDefaultImage = async (req, res) => {
   const resHandler = new ResHandler();
   try {
-    const { ownerId, propertyId, oldDefaultId, newDefaultId } = req.body;
-    if (!ownerId || !propertyId || !oldDefaultId || !newDefaultId) {
+    const { propertyId, oldDefaultId, newDefaultId } = req.body;
+    if (!propertyId || !oldDefaultId || !newDefaultId) {
       resHandler.setError(HttpStatus.BAD_REQUEST, RES_MESSAGES.MISSING_PARAMETERS);
       return resHandler.send(res)
     }
@@ -513,7 +563,7 @@ exports.updateDefaultImage = async (req, res) => {
       return resHandler.send(res)
     }
 
-    if (property.ownerId != ownerId) {
+    if (property.ownerId != req.user.id) {
       if (!hasAdminPriviledges(req.user)) {
         resHandler.setError(HttpStatus.UNAUTHORIZED, RES_MESSAGES.USER.ERROR.UNAUTHORIZED);
         return resHandler.send(res)
@@ -560,10 +610,9 @@ exports.deleteImage = async (req, res) => {
       return resHandler.send(res)
     }
 
-    const property = await Property.findAll({
+    const property = await Property.findOne({
       where: {
         id: req.params.id,
-        ownerId: req.id
       }
     })
 
@@ -604,4 +653,55 @@ function isPropertyDataValid(inProperty) {
     !inProperty.pricePerDay || !inProperty.pricePerMonth)
     return false
   return true
+}
+
+exports.addImage = async (req, res) => {
+  const resHandler = new ResHandler();
+  const transaction1 = await sequelize.transaction()
+  try {
+
+    const { propertyId } = req.body;
+
+    if (!propertyId) {
+      throw new Error("");
+    }
+
+    const property = await Property.findByPk(propertyId)
+
+    const imagesData = [];
+    const files = req.files.filter((file) => file.fieldname === "images")
+    const filesPromises = files.map(async element => {
+      const index = files.indexOf(element)
+      const resultPath = await UploadFile(element, 'property', `${property.id}_${uuidv4()}`)
+      if (resultPath) {
+        const { status, result } = await createImageData(property, resultPath, index, transaction1)
+        if (status)
+          imagesData.push(result)
+      }
+    })
+    await Promise.all(filesPromises)
+
+    await transaction1.commit()
+
+    await property.update({ status: 'pending' })
+
+    await addPendingPropertyCreation();
+
+    const result = { ...property, imagesData };
+
+    resHandler.setSuccess(
+      HttpStatus.OK,
+      RES_MESSAGES.PROPERTY.SUCCESS.CREATED,
+      result
+    );
+    return resHandler.send(res)
+  } catch (error) {
+    console.log("ERROR OCCURED: " + error)
+    await transaction1.rollback()
+    resHandler.setError(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`
+    )
+    return resHandler.send(res)
+  }
 }

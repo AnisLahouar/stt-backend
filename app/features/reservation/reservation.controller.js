@@ -13,7 +13,7 @@ const { acceptPendingReservationRequest, addPendingReservationRequest, deletePen
 
 exports.create = async (req, res) => {
   const resHandler = new ResHandler();
-  const transaction = await sequelize.transaction()
+  // const transaction = await sequelize.transaction()
   let createdReservation;
   try {
     let { propertyId, clientName, clientEmail, clientPhone, comment } = req.body
@@ -47,13 +47,13 @@ exports.create = async (req, res) => {
 
     // console.log("Created Reservation Id: " + createdReservation.id);
 
-    const createdDates = await createDates(createdReservation.id, dates, transaction);
+    const createdDates = await createDates(createdReservation.id, dates, null);
 
     const result = { ...createdReservation.toJSON(), createdDates }
 
     // console.log("READY TO COMMIT");
 
-    await transaction.commit();
+    // await transaction.commit();
 
     await addPendingReservationRequest();
 
@@ -65,8 +65,10 @@ exports.create = async (req, res) => {
     return resHandler.send(res)
   }
   catch (error) {
+    console.log(error);
+    
     await createdReservation.destroy()
-    await transaction.rollback()
+    // await transaction.rollback()
     resHandler.setError(
       HttpStatus.INTERNAL_SERVER_ERROR,
       `${RES_MESSAGES.SERVER_ERROR}: ${error.message}`

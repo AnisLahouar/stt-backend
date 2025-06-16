@@ -23,7 +23,7 @@ const sequelize = new Sequelize(
 (async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync({ alter: true, logging: true });
+    await sequelize.sync({ alter: false, logging: true });
 
     console.log("Connection has been established successfully To ***MYSQL.");
     log.info("Connection has been established successfully.");

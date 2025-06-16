@@ -12,15 +12,17 @@ const multerMiddleware = createMulterMemoryMiddleware({
 })
 
 router.post('/', [userMiddleware, multerMiddleware], controller.create)
-router.get('/', controller.findAll)
+router.get('/public', controller.publicFindAll)
+router.get('/', [userMiddleware], controller.findAll)
 router.get('/owner/:id', controller.findByOwner)
-router.get('/:id', controller.publicGetOne)
-router.get('for-admin/:id', [userMiddleware], controller.findOne)
-router.get('count/:ownerId', [userMiddleware], controller.count)
+router.get('/public/:id', controller.publicGetOne)
+router.get('/:id', [userMiddleware], controller.findOne)
+router.get('/count/:ownerId', [userMiddleware], controller.count)
 router.put('/:id', [userMiddleware], controller.update)
 router.put('/confirm/:id', [userMiddleware, isAdminMiddleware], controller.confirm)
 router.delete('/:id', controller.delete)
 router.delete('/:id/image/:imageId', [userIdMiddleware], controller.deleteImage)
 router.put('/:id/images', [userMiddleware], controller.updateDefaultImage)
+router.put('/image/create', [userMiddleware, multerMiddleware], controller.addImage)
 
 module.exports = router
