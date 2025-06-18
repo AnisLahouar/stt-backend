@@ -5,6 +5,6 @@ const { getGeneralAnalytics, generate } = require("./analytics.controller");
 const router = require("express").Router();
 
 router.get('/', [userMiddleware, isAdminMiddleware], getGeneralAnalytics)
-router.post('/', [userMiddleware, isAdminMiddleware], generate)
+router.post('/', [userMiddleware, isSuperAdminMiddleware], generate)
 
 module.exports = router;
